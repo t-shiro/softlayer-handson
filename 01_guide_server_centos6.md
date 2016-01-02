@@ -35,49 +35,49 @@ SoftLayer上では、WindowsやLinux、FreeBSD等様々なサーバOSが動く�
 ※2014年6月20日現在
 
 #### Order Device
-管理ポータルから[Devices]→[Device List]を選んでください。さらに、次の画面から[Order Devices]をクリックしてください。
+管理ポータルから[Devices]→[Device List]を選んでください。さらに、次の画面から[Order Devices]をクリックしてください。  
 ![オーダー画面1](images/server/image3.png)
 
-製品とサービスのオーダー画面が表示されますので、[Virtual Server (public node)]で、[Hourly]をクリックしてください。
+製品とサービスのオーダー画面が表示されますので、[Virtual Server (public node)]で、[Hourly]をクリックしてください。  
 ![オーダー画面2](images/server/image4.png)
 
 #### Quantity
-サーバの数量を入力してください。
+サーバの数量を入力してください。  
 ![オーダー画面2](images/server/image5.png)
 - 一度に作成できる最大のサーバ数は20台です。
 
 
 #### Location
-ロケーションはSJC01を選択してください。
+ロケーションはSJC01を選択してください。  
 ![オーダー画面2](images/server/image6.png)
 
 #### System Configuration
-次は、CPU、RAM、OS、FIRST DISKを設定してください。OS以外はデフォルトでかまいません。OSは、CentOS、Redhat　Enterprise Linux、Ubuntu、Debian、Microsoft Windows、Vyattaから選択できます。今回はCentOS 6.x - Minimal Install (64 bit)を選択してください。
-![オーダー画面2](images/server/image7.png)
+次は、CPU、RAM、OS、FIRST DISKを設定してください。OS以外はデフォルトでかまいません。OSは、CentOS、Redhat　Enterprise Linux、Ubuntu、Debian、Microsoft Windows、Vyattaから選択できます。今回はCentOS 6.x - Minimal Install (64 bit)を選択してください。  
+![オーダー画面2](images/server/image7.png)  
 
 #### Network operations
-今回はすべてデフォルトにしてください。詳細は[Show…]をクリックして確認してください。
-![オーダー画面2](images/server/image8.png)
+今回はすべてデフォルトにしてください。詳細は[Show…]をクリックして確認してください。  
+![オーダー画面2](images/server/image8.png)  
 
 #### System Addons
 **TODO:画像追加**  
 今回はすべてデフォルトにしてください。詳細は[Show…]をクリックして確認してください。
 
 #### Storage Addons
-すべてデフォルトのままにします。詳細は[Show…]をクリックして確認してください。
-![オーダー画面2](images/server/image10.png)
+すべてデフォルトのままにします。詳細は[Show…]をクリックして確認してください。  
+![オーダー画面2](images/server/image10.png)  
 
 
 #### Service Addons
-下記のように選択します。詳細は[Show…]をクリックして確認してください。  
-![オーダー画面2](images/server/image11.png)
+下記のように選択します。詳細は[Show…]をクリックして確認してください。    
+![オーダー画面2](images/server/image11.png)  
 
-最後に、画面一番下の[Continue Your Order]をクリックしてください。  
-![オーダー画面2](images/server/image12.png)
+最後に、画面一番下の[Continue Your Order]をクリックしてください。    
+![オーダー画面2](images/server/image12.png)  
 
 #### Order Summary and Billing
-オーダーの概要と請求内容が表示されますので、[Host and Domain Names]のセクションまでスクロールしてください。
-![オーダー画面2](images/server/image13.png)
+オーダーの概要と請求内容が表示されますので、[Host and Domain Names]のセクションまでスクロールしてください。  
+![オーダー画面2](images/server/image13.png)  
 
 [Host and Domain Names]のセクションでホスト名とドメイン名を入力してください。このホスト名とドメイン名は実在しない仮の値でかまいません。実際にDNSに対しての操作は行われず、サーバを認識するためだけに用いられます。空欄ですとオーダーが確定できません。
 
@@ -86,7 +86,7 @@ Hostname: “貸与されたアカウント名”
 Domain: ibm.com
 
 サーバにログインするためのパスワードは自動生成されます。SSH鍵認証も利用可能です。
-![オーダー画面2](images/server/image14.png)
+![オーダー画面2](images/server/image14.png)  
 マスターサービスアグリーメントに同意して、[Finalize Your Order]をクリックしてください。
 ![オーダー画面2](images/server/image15.png)
 ![オーダー画面2](images/server/image16.png)
@@ -94,7 +94,7 @@ Domain: ibm.com
 #### オーダー確定(Finalize Your Order)
 オーダーが確定すると、次のようにオーダー受け付けた旨のレポート(Your Receipt)が表示されます。同時に、バーチャルサーバ（仮想サーバー）の起動を開始しています。  
 オーダー内容を確認後、ウィンドウを閉じてください。
-![オーダー画面2](images/server/image17.png)
+![オーダー画面2](images/server/image17.png)  
 
 
 ## CLI (Command Line Interface)
