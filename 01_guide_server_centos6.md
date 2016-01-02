@@ -80,13 +80,12 @@ TODO: Provisioning scriptの説明
 ![](images/server/image13.png)  
 
 [Host and Domain Names]のセクションでホスト名とドメイン名を入力してください。このホスト名とドメイン名は実在しない仮の値でかまいません。実際にDNSに対しての操作は行われず、サーバを認識するためだけに用いられます。空欄ですとオーダーが確定できません。
-
+![](images/server/image14.png)  
 > 注意 : 講師から貸与アカウントでハンズオンに参加されている方は下記のネーミングでサーバを作成してください。  
 Hostname: “貸与されたアカウント名”  
 Domain: ibm.com
 
 サーバにログインするためのパスワードは自動生成されます。SSH鍵認証も利用可能です。
-![](images/server/image14.png)  
 マスターサービスアグリーメントに同意して、[Finalize Your Order]をクリックしてください。
 ![](images/server/image15.png)
 ![](images/server/image16.png)
@@ -288,6 +287,58 @@ iptablesが適切に設定されていれば，Apache2 Test Pangeが表示され
 
 以上で80(HTTP)への通信を許可するルールが削除され，80(HTTP)への通信はブロックされます．
 
+
+## イメージテンプレート
+> 注意: この作業は月額、$0.25/GB課金されます。無料トライアルアカウントユーザの場合、ご注意ください。
+
+### イメージの種類
+SoftLayerには、スタンダードイメージとフレックスイメージと呼ばれる2種類のイメージテンプレートがあります。
+- スタンダードイメージテンプレート  
+スタンダードイメージテンプレートは、簡単に言えばサーバのバックアップの役割を果たします。SoftLayerは、このイメージテンプレートから新しいサーバを作成することができます。スタンダードイメージはバーチャルサーバにのみ対応しています。
+![](images/server/image46.png)
+
+- フレックスイメージテンプレート  
+フレックスイメージテンプレートは、通常のイメージテンプレートと異なり、バーチャルサーバ、ベアメタルインスタンス、ベアメタルサーバ間で共有できます。ただし、現時点ではOSがWindows, Red Hat Enterprise Linux, CentOSでしかフレックスイメージは利用できません。
+![](images/server/image47.png)  
+
+本ハンズオンでは，スタンダードイメージテンプレートを用いて仮想マシンのスナップショットやスナップショットを用いたデプロイを行います．
+
+### イメージテンプレート作成
+管理ポータルから[Devices]→[Device List]をクリックしてデバイス一覧を表示してください。
+イメージを作成したいサーバをクリックして、[Action]→[Create Image Template]をクリックしてください。
+
+**TODO:画像変える**
+![](images/server/image48.png)
+
+> 注意:下記のネーミングでイメージを作成してください。  
+Image Name: “貸与されたアカウント名”-image 例: sluser01-image  
+Note: “貸与されたアカウント名”-image 例: sluser01-image  
+
+イメージs区政治に，取得するイメージに関する説明の入力が求められます．
+
+|項目             |入力例           |備考   |
+|:---------------:|:--------------:|:---------------------------:|
+|*ImageName(必須) |server1-template|任意の名称                     |
+|Note(任意)       |server1-template|任意の名称                     |
+|Drive            |0               |拡張DISKがあれば複数表示されます|
+
+![](images/server/image49.png)
+
+イメージテンプレート作成時には仮想サーバが自動的にPower Offの状態になります。仮想サーバでの作業などを完了し、Power Offにしてよければ[I agree to have my computing instance powered off]にチェックし、 [Create Template]をクリックしてください。10秒程度してテンプレート作成成功のメッセージが表示されますので、イメージ一覧を確認します。  
+
+管理ポータルから[Device]→[Manage]→[Images]をクリックしてください。イメージ作成中は、[Transaction in progress]のステータスですが、10分程度でイメージの作成が完了します。次の図のようにCreate Dateに日付が表示されていれば、完了です。
+
+![](images/server/image50.png)
+
+### イメージテンプレートを用いたデプロイ
+**TODO: 画像**  
+取得したイメージテンプレートを基に，仮装インスタンスをデプロイします．管理ポータルから[Device] – [Device list] – 自分のサーバと開き，右端の[Actions] – [Order Hourly Virtual Server]を選択してください．
+
+注文ウィザードが表示されます．一番上の[Location] - [DATA CENTER] と，注文確定画面のHost and Domain Names設定肢，注文に進んで下さい．
+
+![](images/server/image14.png)  
+
+以上で，イメージテンプレートを用いた仮想マシンのデプロイは完了しました．同じ構成のマシンを多数，高速に展開したい場合はイメージテンプレートを利用すると仁宗｀くなデプロイが可能です．
 
 ## CLI (Command Line Interface)
 
