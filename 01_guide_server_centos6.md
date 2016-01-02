@@ -2,7 +2,6 @@
 
 
 ## 事前準備
-------
 
 - SoftLayerのアカウントは、事前取得していることを前提にしています。次の「SoftLayer 無料トライアルのご案内」を参照してください。
 【SoftLayer無料トライアルのご案内】http://www.ibm.com/cloud-computing/jp/ja/softlayer_flow.html
@@ -24,7 +23,7 @@ SoftLayerの利用は、管理ポータルから操作します。
 - 同じネットワークからのログイン要求で、パスワードを連続3回間違えると、そのネットワークからのログイン要求を30分間遮断しますので、パスワードは慎重にいれてください。
 - ブラウザは、Chrome、Firefoxをお勧めします。Internet Exploreは表示されない場合があります
 
-## 仮想サーバーの利用
+## 3 仮想サーバーの利用
 SoftLayer上では、WindowsやLinux、FreeBSD等様々なサーバOSが動くインスタンスをデプロイして利用することができます。Linuxでのハンズオンを希望する場合は引き続き5章以降を、Windowsでのハンズオンを希望する場合は9.1を読み進めてください。
 ### 仮想サーバのデプロイ
 > 注意 : この作業は課金されます。無料トライアルアカウントユーザの場合、ご注意ください。
@@ -36,28 +35,28 @@ SoftLayer上では、WindowsやLinux、FreeBSD等様々なサーバOSが動く�
 
 #### Order Device
 管理ポータルから[Devices]→[Device List]を選んでください。さらに、次の画面から[Order Devices]をクリックしてください。  
-![オーダー画面1](images/server/image3.png)
+![](images/server/image3.png)
 
 製品とサービスのオーダー画面が表示されますので、[Virtual Server (public node)]で、[Hourly]をクリックしてください。  
-![オーダー画面2](images/server/image4.png)
+![](images/server/image4.png)
 
 #### Quantity
 サーバの数量を入力してください。  
-![オーダー画面2](images/server/image5.png)
+![](images/server/image5.png)
 - 一度に作成できる最大のサーバ数は20台です。
 
 
 #### Location
 ロケーションはSJC01を選択してください。  
-![オーダー画面2](images/server/image6.png)
+![](images/server/image6.png)
 
 #### System Configuration
 次は、CPU、RAM、OS、FIRST DISKを設定してください。OS以外はデフォルトでかまいません。OSは、CentOS、Redhat　Enterprise Linux、Ubuntu、Debian、Microsoft Windows、Vyattaから選択できます。今回はCentOS 6.x - Minimal Install (64 bit)を選択してください。  
-![オーダー画面2](images/server/image7.png)  
+![](images/server/image7.png)  
 
 #### Network operations
 今回はすべてデフォルトにしてください。詳細は[Show…]をクリックして確認してください。  
-![オーダー画面2](images/server/image8.png)  
+![](images/server/image8.png)  
 
 #### System Addons
 **TODO:画像追加**  
@@ -65,19 +64,20 @@ SoftLayer上では、WindowsやLinux、FreeBSD等様々なサーバOSが動く�
 
 #### Storage Addons
 すべてデフォルトのままにします。詳細は[Show…]をクリックして確認してください。  
-![オーダー画面2](images/server/image10.png)  
+![](images/server/image10.png)  
 
 
 #### Service Addons
 下記のように選択します。詳細は[Show…]をクリックして確認してください。    
-![オーダー画面2](images/server/image11.png)  
+![](images/server/image11.png)  
 
 最後に、画面一番下の[Continue Your Order]をクリックしてください。    
-![オーダー画面2](images/server/image12.png)  
+![](images/server/image12.png)  
 
 #### Order Summary and Billing
+TODO: Provisioning scriptの説明
 オーダーの概要と請求内容が表示されますので、[Host and Domain Names]のセクションまでスクロールしてください。  
-![オーダー画面2](images/server/image13.png)  
+![](images/server/image13.png)  
 
 [Host and Domain Names]のセクションでホスト名とドメイン名を入力してください。このホスト名とドメイン名は実在しない仮の値でかまいません。実際にDNSに対しての操作は行われず、サーバを認識するためだけに用いられます。空欄ですとオーダーが確定できません。
 
@@ -86,15 +86,103 @@ Hostname: “貸与されたアカウント名”
 Domain: ibm.com
 
 サーバにログインするためのパスワードは自動生成されます。SSH鍵認証も利用可能です。
-![オーダー画面2](images/server/image14.png)  
+![](images/server/image14.png)  
 マスターサービスアグリーメントに同意して、[Finalize Your Order]をクリックしてください。
-![オーダー画面2](images/server/image15.png)
-![オーダー画面2](images/server/image16.png)
+![](images/server/image15.png)
+![](images/server/image16.png)
 
 #### オーダー確定(Finalize Your Order)
 オーダーが確定すると、次のようにオーダー受け付けた旨のレポート(Your Receipt)が表示されます。同時に、バーチャルサーバ（仮想サーバー）の起動を開始しています。  
 オーダー内容を確認後、ウィンドウを閉じてください。
-![オーダー画面2](images/server/image17.png)  
+![](images/server/image17.png)  
+
+### 仮装サーバの確認
+メインウインドウにもどり、管理ポータルから[Devices]→[Device List]をクリックしてください。クラウドインスタンスが完全に起動すると、該当サーバのStart Date項目に、サーバ利用開始日付が表示されます。デバイス名の左側に時計のアイコンが表示されている場合はインスタンスの準備作業中です。
+
+![](images/server/image18.png)  
+デバイス名（ここでは、server1.mycompany.com）をクリックすると、詳細情報(Device Details)が表示されます。[Passwords]タブでパスワードを変更しても、実際のサーバには反映されないことに注意してください。今のところ、この情報はサーバと連携していません。パスワードの変更は実際のサーバ内で行ってください。
+![](images/server/image19.png)  
+- パスワードが表示されない場合は、画面をリロードしてください。
+
+### 仮想サーバーへのログイン
+バーチャルサーバへのログインは、Public IPアドレスに対して行いますので、まずはPublic IPアドレスを確認します。  
+
+管理ポータルから[Devices]→[Device List]をクリックし、サーバ名の横の矢印をクリックします。
+**TODO: 画像変更**
+![](images/server/image20.png)  
+
+作成されたサーバのPublic IPアドレスをメモしてください。  
+Show Passwordをチェックし、rootのパスワードもメモしてください。
+
+Tera TermやPuTTyなどのSSHクライアントソフトウェアを用いてログインしてください。本資料の手順では、Tera Termを使っています。SSHクライアントソフトウェアをインストールしてない場合は、下記リンクより、Tera Termをインストールしてください。インストール時、「コンポーネントの選択」では「コンパクトインストール」を選択し、それ以外はデフォルトで進めてください。  
+Tera Term: http://sourceforge.jp/projects/ttssh2/
+
+![](images/server/image21.png)  
+
+Tera Termを起動し、先ほどメモしたPublic IPアドレスに接続します。  
+![](images/server/image22.png)  
+
+先ほどメモした、rootパスワードを使用しログインします。
+![](images/server/image23.png)  
+
+特にパスワードが間違っていなければ、次のようにログインできます。
+> Last login: Wed Mar 12 04:00:48 2014 from xxx.xxx.xxx.xxx.static.zoot.jp  
+[root@server1 ~]#
+
+### ネットワーク構成の確認
+#### 4.4.1. サーバ起動直後のネットワーク構成
+SoftLayerのサーバは標準ではPublic VLANとPrivate VLANに接続された状態で起動します。そしてPublic VLANにはGlobal IPアドレスが、Private VLANにはPrivate IPアドレスが与えられています。  
+![](images/server/image24.png)    
+次のようにifconfigコマンドでeth1にはGlobal IPアドレス、eth0にはPrivate IPアドレスが付与されていることを確認します。
+
+
+    # ifconfig
+      eth0      Link encap:Ethernet  HWaddr 06:17:0E:9D:FD:69
+                inet addr:10.xxx.xxx.130  Bcast:10.xxx.xxx.191  Mask:255.255.255.192
+                inet6 addr: fe80::417:eff:fe9d:fd69/64 Scope:Link
+                UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+                RX packets:5326 errors:0 dropped:0 overruns:0 frame:0
+                TX packets:2057 errors:0 dropped:0 overruns:0 carrier:0
+                collisions:0 txqueuelen:1000
+                RX bytes:5908309 (5.6 MiB)  TX bytes:227241 (221.9 KiB)
+                Interrupt:246
+      eth1      Link encap:Ethernet  HWaddr 06:4A:40:39:35:A7
+                inet addr:50.xxx.xxx.98  Bcast:50.xxx.xxx.103  Mask:255.255.255.248
+                inet6 addr: fe80::44a:40ff:fe39:35a7/64 Scope:Link
+                UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+                RX packets:4108 errors:0 dropped:0 overruns:0 frame:0
+                TX packets:3334 errors:0 dropped:0 overruns:0 carrier:0
+                collisions:0 txqueuelen:1000
+                RX bytes:672487 (656.7 KiB)  TX bytes:663662 (648.1 KiB)
+                Interrupt:245
+      以下略…
+
+サーバ起動直後では、Linux標準のSoftware firewall (iptables)が起動しており、デフォルトでは、20 (ftpデータ), 21 (ftp制御), 22 (SSH), 25 (SMTP), 53 (DNS), 80 (HTTP), 110 (POP3), 143 (IMAP), 443 (HTTPS), 808 (WinHole), 3306 (MySQL) の通信を許可しています。
+
+#### VLAN構成
+管理ポータルから、[Device]→[Device List]→[作成したサーバ]をクリックして、ConfigurationのNetworkカテゴリを確認すると、Public VLANとPrivate　VLAN を確認できます。
+![](images/server/image25.png)  
+
+Public VLANとPrivate　VLANをクリックをすると、それぞれサブネットと関連付けられていることがわかります。
+
+![](images/server/image26.png)  
+
+
+#### サブネット構成
+Public VLANとPrivate　VLAN それぞれのSubnetsカテゴリに表示されている、サブネットをクリックしてください。標準のサブネットは、次のように構成されています。  
+
+|種類       |レンジ           |個数   |
+|:--------:|:---------------:|:----:|
+|Public IP |50.xxx.xxx.96/29 |16 IPs|
+|Private IP|10.xxx.xxx.126/26|64 IPs|
+
+Public Subnetには、トータルで16個のIPアドレスが与えられています。3つのIPアドレスはシステムが使っており、1つはバーチャルサーバに与えられていることがわかります。空いている4つのIPアドレス（Primary ip for future server only）は、同データセンター内で、次のインスタンスが起動するときに割り当てられます。
+![](images/server/image28.png)  
+
+Private Subnetには、トータルで64個のIPアドレスが与えられています。3つのIPアドレスはシステムが使っており、1つはバーチャルサーバに与えられていることがわかります。空いているIPアドレス（Primary ip for future server only）は、同データセンター内で、次のインスタンスが起動するときに割り当てられます。  
+![](images/server/image27.png)  
+
+
 
 
 ## CLI (Command Line Interface)
@@ -106,6 +194,8 @@ SoftLayerコマンドラインクライアントとは、SoftLayerをコマン�
 
 ### SoftLayerコマンドラインクライアントのインストール
 Pythonのeasy_installコマンドでCLIをインストールしてください。ここでは、自分の作成したサーバにSoftLayerコマンドラインクライアントをインストールします。
+
+
 
 Red Hat系
 
