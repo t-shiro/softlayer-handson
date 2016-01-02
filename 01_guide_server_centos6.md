@@ -170,7 +170,7 @@ Public VLANとPrivate　VLANをクリックをすると、それぞれサブネ�
 #### サブネット構成
 Public VLANとPrivate　VLAN それぞれのSubnetsカテゴリに表示されている、サブネットをクリックしてください。標準のサブネットは、次のように構成されています。  
 
-|種類       |レンジ           |個数   |
+|種類      |レンジ           |個数  |
 |:--------:|:---------------:|:----:|
 |Public IP |50.xxx.xxx.96/29 |16 IPs|
 |Private IP|10.xxx.xxx.126/26|64 IPs|
@@ -287,6 +287,284 @@ iptablesが適切に設定されていれば，Apache2 Test Pangeが表示され
 
 以上で80(HTTP)への通信を許可するルールが削除され，80(HTTP)への通信はブロックされます．
 
+## Command Line Interface(CLI)
+### SoftLayerコマンドラインクライアントとは
+SoftLayerコマンドラインクライアントとは、SoftLayerをコマンドラインから操作するためにPythonで作成されたツールです。
+
+### SoftLayerコマンドラインクライアントのインストール
+最初にPythonのセットアップを，その後にSoftLayerのCLIツールのセットアップを行います。
+PythonのセットアップにはPyEnvを使用します．インストールの詳細は以下を参照して下さい。  
+- PyEnv https://github.com/yyuu/pyenv-installer
+
+```
+# yum -y groupinstall "Development Tools"
+# yum -y install libffi-devel openssl-devel
+# curl -L https://raw.githubusercontent.com/yyuu/pyenv-installer/master/bin/pyenv-installer | bash
+# export PATH="/root/.pyenv/bin:$PATH"
+# eval "$(pyenv init -)"
+# eval "$(pyenv virtualenv-init -)"
+# pyenv install 2.7.11 (完了まで少々時間がかかります．)
+# pyenv rehash
+# pyenv global 2.7.11
+# easy_install importlib softlayer
+```
+
+
+次のようにコマンドの解説を確認してください。
+
+```
+# slcli
+usage: slcli  [...]
+       slcli help
+       slcli help  
+       slcli [-h | --help]
+
+SoftLayer Command-line Client
+
+The available modules are:
+
+Compute:
+  bmc       Bare Metal Cloud
+  cci       Cloud Compute Instances
+  image     Manages compute and flex images
+  metadata  Get details about this machine. Also available with 'my' and 'meta'
+  server    Hardware servers
+  sshkey    Manage SSH keys on your account
+
+Networking:
+  dns       Domain Name System
+  firewall  Firewall rule and security management
+  globalip  Global IP address management
+  rwhois    RWhoIs operations
+  ssl       Manages SSL
+  subnet    Subnet ordering and management
+  vlan      Manage VLANs on your account
+
+Storage:
+  iscsi     View iSCSI details
+  nas       View NAS details
+
+General:
+  config    View and edit configuration for this tool
+  summary   Display an overall summary of your account
+  help      Show help
+
+See 'sl help ' for more information on a specific module.
+
+To use most commands your SoftLayer username and api_key need to be configured.
+The easiest way to do that is to use: 'sl config setup'
+```
+
+### APIキーの取得
+APIキーはSoftLayerカスタマーポータルから取得します。  
+管理ポータルから[Account]→[Users]をクリックしてください。
+
+![](images/server/image33.png)  
+
+表示されたユーザの[API Key]の[View]をクリックすると、そのユーザのAPIキーが表示されます。SoftLayerコマンドラインクライアントはこのユーザ名とAPIキーを用いてSoftLayerにアクセスします。メモしておいてください。  
+![](images/server/image34.png)  
+
+### SoftLayerコマンドクライアントの設定
+最初は何も設定がされていないことをslcli config showコマンドで確認します。
+
+```
+$ slcli config show
+:..............:.....................................:
+:         Name : Value                               :
+:..............:.....................................:
+:     Username : not set                             :
+:      API Key : not set                             :
+: Endpoint URL : https://api.softlayer.com/xmlrpc/v3 :
+:      Timeout : not set                             :
+:..............:.....................................:
+```
+
+slcli config setupコマンドで設定を行います。  
+Usernameにはユーザ名、API Key or PasswordにはAPIキー、Endpointはそのままエンターキーを入力してください。Endpointのデフォルト値では、XML-RPCを利用したPublic経由でのアクセスになります。必要に応じてアクセス方法とネットワークを選択してください。
+
+
+```
+$ slcli config setup
+Username []: SL******
+API Key or Password []:
+Endpoint (public|private|custom):
+:..............:..................................................................:
+:         Name : Value                                                            :
+:..............:..................................................................:
+:     Username : SL******                                                         :
+:      API Key : **************************************************************** :
+: Endpoint URL : https://api.softlayer.com/xmlrpc/v3/                             :
+:      Timeout : not set                                                          :
+:..............:..................................................................:
+Are you sure you want to write settings to "/home/********/.softlayer"? [Y/n]:
+Configuration Updated Successfully
+```
+問題なければホームディレクトリの.softlayerに内容が保存されます。
+
+```
+$ cat ~/.softlayer
+[softlayer]
+username = SL******
+api_key = ****************************************************************
+endpoint_url = https://api.softlayer.com/xmlrpc/v3/
+```
+
+これで以降、slコマンドを通してSoftLayerを操作できます。
+
+### SoftLayerコマンドラインクライアントの利用
+CLIの使用法を見てみます。
+
+```
+# slcli –h
+Usage: slcli [OPTIONS] COMMAND [ARGS]...
+…中略
+```
+
+仮想サーバ (Public Cloud Instances, vs) の一覧を表示します。)
+
+
+```
+$ slcli vs list
+:.........:............:......................................:.......:........:...............:..............:....................:
+:    id   : datacenter :                 host                 : cores : memory :   primary_ip  :  backend_ip  : active_transaction :
+:.........:............:......................................:.......:........:...............:..............:....................:
+: 4454692 :   sjc01    : softlayer-network-test01.example.com :   1   :   1G   : 198.11.123.11 : 10.53.123.11 :         -          :
+:.........:............:......................................:.......:........:...............:..............:....................:
+```
+
+仮想サーバの詳細を表示します。
+
+```
+$ slcli vs detail 198.11.123.11
+:....................:......................................:
+:               Name : Value                                :
+:....................:......................................:
+:                 id : 1234567                              :
+:           hostname : softlayer-network-test01.example.com :
+:             status : Active                               :
+: active_transaction : -                                    :
+:              state : Running                              :
+:         datacenter : sjc01                                :
+:                 os : CentOS                               :
+:         os_version : 6.0-64 Minimal for CCI               :
+:              cores : 1                                    :
+:             memory : 1G                                   :
+:          public_ip : 198.11.***.**                        :
+:         private_ip : 10.53.**.***                         :
+:       private_only : False                                :
+:        private_cpu : False                                :
+:            created : 2014-04-22T22:56:28-05:00            :
+:           modified : 2014-04-22T22:58:12-05:00            :
+:              vlans : :.........:........:........:        :
+:                    : :   type  : number :   id   :        :
+:                    : :.........:........:........:        :
+:                    : : PRIVATE :  1001  : 100001 :        :
+:                    : :  PUBLIC :  1002  : 100002 :        :
+:....................:......................................:
+```
+
+仮想サーバを作成するためには、指定可能なリソースの確認が必要です。
+
+```
+$ slcli vs create-options
+:.................:..........................................................:
+:            Name : Value                                                    :
+:.................:..........................................................:
+:      datacenter : ams01,dal01,dal05,dal06,sea01,sjc01,sng01,wdc01          :
+:  cpus (private) : 1,2,4,8                                                  :
+: cpus (standard) : 1,2,4,8,12,16                                            :
+:          memory : 1024,2048,4096,6144,8192,12288,16384,32768,49152,65536   :
+:     os (CENTOS) : CENTOS_5_32                                              :
+:                 : CENTOS_5_64                                              :
+:                 : CENTOS_6_32                                              :
+:                 : CENTOS_6_64                                              :
+: os (CLOUDLINUX) : CLOUDLINUX_5_32                                          :
+:                 : CLOUDLINUX_5_64                                          :
+:                 : CLOUDLINUX_6_32                                          :
+:                 : CLOUDLINUX_6_64                                          :
+・・・中略                                                                   :
+:....................:.......................................................:
+```
+
+仮想サーバを作成する際のオプション一覧は、次のように確認します。
+
+```
+$ slcli vs create --help
+usage: sl cci create [--key=KEY...] [options]
+
+Order/create a CCI. See 'sl cci create-options' for valid options
+
+Required:
+  -c, --cpu=CPU        Number of CPU cores
+  -D, --domain=DOMAIN  Domain portion of the FQDN. example: example.com
+  -H, --hostname=HOST  Host portion of the FQDN. example: server
+  --image=GUID         Image GUID. See: 'sl image list' for reference
+  -m, --memory=MEMORY  Memory in mebibytes. example: 2048
+  -o, --os=OS          OS install code. Tip: you can specify _LATEST
+
+  --hourly            Hourly rate instance type
+  --monthly           Monthly rate instance type
+
+Optional:
+  -d, --datacenter=DC    Datacenter shortname (sng01, dal05, ...)
+                         Note: Omitting this value defaults to the first
+                               available datacenter
+  --dedicated            Allocate a dedicated CCI (non-shared host)
+  --dry-run, --test      Do not create CCI, just get a quote
+  --export=FILE          Exports options to a template file
+  -F, --userfile=FILE    Read userdata from file
+                         (Only HTTPS executes, HTTP leaves file in /root)
+  -i, --postinstall=URI  Post-install script to download
+  -k, --key=KEY          SSH keys to add to the root user. Can be specified
+                         multiple times
+  --like=IDENTIFIER      Use the configuration from an existing CCI
+  -n, --network=MBPS     Network port speed in Mbps
+  --private              Forces the CCI to only have access the private
+                         network
+  -t, --template=FILE    A template file that defaults the command-line
+                         options using the long name in INI format
+  -u, --userdata=DATA    User defined metadata string
+  --vlan_public=VLAN     The ID of the public VLAN on which you want the CCI
+                         placed.
+  --vlan_private=VLAN    The ID of the private VLAN on which you want the CCI
+                         placed.
+  --wait=SECONDS         Block until CCI is finished provisioning for up to X
+                         seconds before returning
+
+Prompt Options:
+  -y, --really  Confirm all prompt actions
+
+Standard Options:
+  --format=ARG           Output format. [Options: table, raw] [Default: table]
+  -C FILE --config=FILE  Config file location. [Default: ~/.softlayer]
+  --debug=LEVEL          Specifies the debug noise level
+                         1=warn, 2=info, 3=debug
+  --timings              Time each API call and display after results
+  -h --help              Show this screen
+
+```
+
+参考: 仮想サーバを作成するコマンドの例示です。
+- 今回のハンズオンでは行わないでください。
+
+```
+$ slcli vs create --cpu=1 --memory=1024 --os=CENTOS_6_64 --billing=hourly --datacenter=sjc01 --disk=25 --hostname=centos --domain=sjc01.jp
+```
+
+- オプションの説明  
+
+|オプション  |引数         |意味          |
+|:----------:|:-----------:|:------------:|
+|--cpu       |1            |CPUの数       |
+|--memory    |1024         |メモリサイズ  |
+|--os        |CENTOS_6_64  |OS ID         |
+|--billing   |hourly       |時間課金      |
+|--datacenter|sjc01        |San Jose DC   |
+|--disc      |25           |ディスクサイズ|
+|--hostname  |server1      |任意のホスト名|
+|--domain    |mycompany.com|ドメイン名    |
+
+
 
 ## イメージテンプレート
 > 注意: この作業は月額、$0.25/GB課金されます。無料トライアルアカウントユーザの場合、ご注意ください。
@@ -354,56 +632,7 @@ Pythonのeasy_installコマンドでCLIをインストールしてください�
 
 Red Hat系
 
-```
-$ yum install -y python-setuptools
-$ easy_install importlib
-$ easy_install softlayer
-```
 
-次のようにコマンドの解説を確認してください。
-
-```
-$ slcli
-usage: slcli  [...]
-       slcli help
-       slcli help  
-       slcli [-h | --help]
-
-SoftLayer Command-line Client
-
-The available modules are:
-
-Compute:
-  bmc       Bare Metal Cloud
-  cci       Cloud Compute Instances
-  image     Manages compute and flex images
-  metadata  Get details about this machine. Also available with 'my' and 'meta'
-  server    Hardware servers
-  sshkey    Manage SSH keys on your account
-
-Networking:
-  dns       Domain Name System
-  firewall  Firewall rule and security management
-  globalip  Global IP address management
-  rwhois    RWhoIs operations
-  ssl       Manages SSL
-  subnet    Subnet ordering and management
-  vlan      Manage VLANs on your account
-
-Storage:
-  iscsi     View iSCSI details
-  nas       View NAS details
-
-General:
-  config    View and edit configuration for this tool
-  summary   Display an overall summary of your account
-  help      Show help
-
-See 'sl help ' for more information on a specific module.
-
-To use most commands your SoftLayer username and api_key need to be configured.
-The easiest way to do that is to use: 'sl config setup'
-```
 
 なお、WindowsでもCLIは使用可能です。次のドキュメントをご確認ください。
 https://www.ibm.com/developerworks/community/files/form/anonymous/api/library/b1409dc8-fbc4-4d02-b799-b70334c67b92/document/78fa4030-97ab-4c70-8b7b-d15e90b469b4/media/SL_CLI%E5%B0%8E%E5%85%A5%E6%96%B9%E6%B3%95_20140213.pdf
