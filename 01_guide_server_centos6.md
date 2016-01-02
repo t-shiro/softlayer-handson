@@ -130,7 +130,7 @@ Tera Termを起動し、先ほどメモしたPublic IPアドレスに接続し�
 [root@server1 ~]#
 
 ### ネットワーク構成の確認
-#### 4.4.1. サーバ起動直後のネットワーク構成
+#### サーバ起動直後のネットワーク構成
 SoftLayerのサーバは標準ではPublic VLANとPrivate VLANに接続された状態で起動します。そしてPublic VLANにはGlobal IPアドレスが、Private VLANにはPrivate IPアドレスが与えられています。  
 ![](images/server/image24.png)    
 次のようにifconfigコマンドでeth1にはGlobal IPアドレス、eth0にはPrivate IPアドレスが付与されていることを確認します。
@@ -157,7 +157,7 @@ SoftLayerのサーバは標準ではPublic VLANとPrivate VLANに接続された
                 Interrupt:245
       以下略…
 
-サーバ起動直後では、Linux標準のSoftware firewall (iptables)が起動しており、デフォルトでは、20 (ftpデータ), 21 (ftp制御), 22 (SSH), 25 (SMTP), 53 (DNS), 80 (HTTP), 110 (POP3), 143 (IMAP), 443 (HTTPS), 808 (WinHole), 3306 (MySQL) の通信を許可しています。
+サーバ起動直後では、Linux標準のSoftware firewall (iptables)が起動しており、デフォルトでは、20 (ftpデータ), 21 (ftp制御), 22 (SSH), 25 (SMTP), 53 (DNS), 110 (POP3), 143 (IMAP), 443 (HTTPS), 3306 (MySQL) の通信を許可しています。
 
 #### VLAN構成
 管理ポータルから、[Device]→[Device List]→[作成したサーバ]をクリックして、ConfigurationのNetworkカテゴリを確認すると、Public VLANとPrivate　VLAN を確認できます。
@@ -182,7 +182,111 @@ Public Subnetには、トータルで16個のIPアドレスが与えられてい
 Private Subnetには、トータルで64個のIPアドレスが与えられています。3つのIPアドレスはシステムが使っており、1つはバーチャルサーバに与えられていることがわかります。空いているIPアドレス（Primary ip for future server only）は、同データセンター内で、次のインスタンスが起動するときに割り当てられます。  
 ![](images/server/image27.png)  
 
+### ファイアウォール設定
+#### iptablesとは
+iptablesは，Linux標準のネットワーク・セキュリティツールです．高機能なファイアウォールとして動作し送受信する通信を柔軟に制御できます．
 
+#### iptablesの起動確認
+Provisioning Scriptにより，自動的にiptablesがセットアップされ起動しています．デフォルトでは、20 (ftpデータ), 21 (ftp制御), 22 (SSH), 25 (SMTP), 53 (DNS), 110 (POP3), 143 (IMAP), 443 (HTTPS), 3306 (MySQL) の通信を許可しています。
+
+    [root@iptables ~]# iptables -L
+    Chain INPUT (policy DROP)
+    target     prot opt source               destination
+    ACCEPT     all  --  anywhere             anywhere
+    ACCEPT     icmp --  anywhere             anywhere
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ftp-data
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ftp
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ssh
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:smtp
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:pop3
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:imap
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:https
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:mysql
+    ACCEPT     all  --  anywhere             anywhere            state RELATED,ESTABLISHED
+
+    Chain FORWARD (policy ACCEPT)
+    target     prot opt source               destination
+
+    Chain OUTPUT (policy ACCEPT)
+    target     prot opt source               destination
+    ACCEPT     all  --  anywhere             anywhere
+
+#### ファイアウォールの設定:接続を許可
+iptablesを設定して，外部からSoftLayer上のVMへ接続出来るように設定を行います．SoftLayerのインスタンス上でWebサーバを起動し，ファイアウォールの設定を変更してWebサーバへの接続を許可してください．
+
+    # yum -y install httpd  
+    # service httpd start
+
+現在，80(HTTP)との通信は許可されていないため，Webサーバに接続することは出来ません．接続できない事を確認するために，クライアントPCのWebブラウザからPublic IPアドレスに接続します。
+
+    http://<作成したサーバのPublic IP>/
+
+iptablesで80(HTTP)への通信が許可されていないため，接続に失敗してブラウザのエラー画面が表示されます．
+![](images/server/image30.png)  
+
+次に，iptablesの設定で80(HTTP) の通信を許可し，再度Webサーバへ接続します．
+
+    # iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
+    # iptables -L
+    Chain INPUT (policy DROP)
+    target     prot opt source               destination
+    ACCEPT     all  --  anywhere             anywhere
+    ACCEPT     icmp --  anywhere             anywhere
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ftp-data
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ftp
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ssh
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:smtp
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:pop3
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:imap
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:https
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:mysql
+    ACCEPT     all  --  anywhere             anywhere            state RELATED,ESTABLISHED
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:http
+
+    Chain FORWARD (policy ACCEPT)
+    target     prot opt source               destination
+
+    Chain OUTPUT (policy ACCEPT)
+    target     prot opt source               destination
+    ACCEPT     all  --  anywhere             anywhere
+
+Chain INPUTの末尾に80(HTTP)を許可するルールが追加されたので，再度WebブラウザでPublic IPアドレスに接続します．．
+
+    http://<作成したサーバのPublic IP>/
+
+iptablesが適切に設定されていれば，Apache2 Test Pangeが表示されます．
+![](images/server/image29.png)
+
+#### ファイアウォールの設定:接続を拒否
+次は，通信を許可するルールを削除して，80(HTTP)への通信をブロックします．
+
+
+    # iptables -L --line-numbers
+    Chain INPUT (policy DROP)
+    num  target     prot opt source               destination
+    1    ACCEPT     all  --  anywhere             anywhere
+    2    ACCEPT     icmp --  anywhere             anywhere
+    3    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ftp-data
+    4    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ftp
+    5    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ssh
+    6    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:smtp
+    7    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:pop3
+    8    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:imap
+    9    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:https
+    10   ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:mysql
+    11   ACCEPT     all  --  anywhere             anywhere            state RELATED,ESTABLISHED
+    12   ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:http
+
+    Chain FORWARD (policy ACCEPT)
+    num  target     prot opt source               destination
+
+    Chain OUTPUT (policy ACCEPT)
+    num  target     prot opt source               destination
+    1    ACCEPT     all  --  anywhere             anywhere
+
+    # iptables -D INPUT 12
+
+以上で80(HTTP)への通信を許可するルールが削除され，80(HTTP)への通信はブロックされます．
 
 
 ## CLI (Command Line Interface)
