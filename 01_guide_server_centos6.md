@@ -228,7 +228,8 @@ iptablesで80(HTTP)への通信が許可されていないため，接続に失�
 
 次に，iptablesの設定で80(HTTP) の通信を許可し，再度Webサーバへ接続します．
 
-    [root@iptables ~]# iptables -L
+    # iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT # ファイアウォールで通信を許可
+    # iptables -L
     Chain INPUT (policy DROP)
     target     prot opt source               destination
     ACCEPT     all  --  anywhere             anywhere            state RELATED,ESTABLISHED
