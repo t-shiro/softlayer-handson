@@ -59,7 +59,7 @@ SoftLayer上では、WindowsやLinux、FreeBSD等様々なサーバOSが動く�
 ![](images/server/image8.png)  
 
 #### System Addons
-**TODO:画像追加**  
+![](images/server/system-addons.png)  
 今回はすべてデフォルトにしてください。詳細は[Show…]をクリックして確認してください。
 
 #### Storage Addons
@@ -75,11 +75,15 @@ SoftLayer上では、WindowsやLinux、FreeBSD等様々なサーバOSが動く�
 ![](images/server/image12.png)  
 
 #### Order Summary and Billing
-TODO: Provisioning scriptの説明
-オーダーの概要と請求内容が表示されますので、[Host and Domain Names]のセクションまでスクロールしてください。  
-![](images/server/image13.png)  
+オーダーの概要と請求内容が表示されますので、[Provision Scripts]のセクションまでスクロールしてください。  
 
-[Host and Domain Names]のセクションでホスト名とドメイン名を入力してください。このホスト名とドメイン名は実在しない仮の値でかまいません。実際にDNSに対しての操作は行われず、サーバを認識するためだけに用いられます。空欄ですとオーダーが確定できません。
+![](images/server/image13.png)  
+![](images/server/provisioning.png)  
+[Provisioning Scripts]では，インストール時に自動で実行するスクリプトを指定できます．ここでは，ファイアウォールの設定を自動で行う為にURL 1に以下のURLを指定します．
+
+    https://shiro.ma/iptables.sh **適当に変更してください**
+
+[Host and Domain Names]のセクションでホスト名とドメイン名を入力してください。このホスト名とドメイン名は実在しない仮の値でかまいません。実際にDNSに対しての操作は行われず、サーバを認識するためだけに用いられます。空欄だとオーダーが確定できません。
 ![](images/server/image14.png)  
 > 注意 : 講師から貸与アカウントでハンズオンに参加されている方は下記のネーミングでサーバを作成してください。  
 Hostname: “貸与されたアカウント名”  
@@ -87,8 +91,7 @@ Domain: ibm.com
 
 サーバにログインするためのパスワードは自動生成されます。SSH鍵認証も利用可能です。
 マスターサービスアグリーメントに同意して、[Finalize Your Order]をクリックしてください。
-![](images/server/image15.png)
-![](images/server/image16.png)
+![](images/server/agreement.png)
 
 #### オーダー確定(Finalize Your Order)
 オーダーが確定すると、次のようにオーダー受け付けた旨のレポート(Your Receipt)が表示されます。同時に、バーチャルサーバ（仮想サーバー）の起動を開始しています。  
@@ -107,7 +110,6 @@ Domain: ibm.com
 バーチャルサーバへのログインは、Public IPアドレスに対して行いますので、まずはPublic IPアドレスを確認します。  
 
 管理ポータルから[Devices]→[Device List]をクリックし、サーバ名の横の矢印をクリックします。
-**TODO: 画像変更**
 ![](images/server/image20.png)  
 
 作成されたサーバのPublic IPアドレスをメモしてください。  
@@ -186,29 +188,30 @@ Private Subnetには、トータルで64個のIPアドレスが与えられて�
 iptablesは，Linux標準のネットワーク・セキュリティツールです．高機能なファイアウォールとして動作し送受信する通信を柔軟に制御できます．
 
 #### iptablesの起動確認
-Provisioning Scriptにより，自動的にiptablesがセットアップされ起動しています．デフォルトでは、20 (ftpデータ), 21 (ftp制御), 22 (SSH), 25 (SMTP), 53 (DNS), 110 (POP3), 143 (IMAP), 443 (HTTPS), 3306 (MySQL) の通信を許可しています。
+Provisioning Scriptにより，サーバのデプロイ時に自動的にiptablesがセットアップされています．デフォルトでは、20 (ftpデータ), 21 (ftp制御), 22 (SSH), 25 (SMTP), 53 (DNS), 110 (POP3), 143 (IMAP), 443 (HTTPS), 3306 (MySQL) の通信を許可しています。
 
-    [root@iptables ~]# iptables -L
     Chain INPUT (policy DROP)
     target     prot opt source               destination
-    ACCEPT     all  --  anywhere             anywhere
+    ACCEPT     all  --  anywhere             anywhere            state RELATED,ESTABLISHED
     ACCEPT     icmp --  anywhere             anywhere
     ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ftp-data
     ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ftp
     ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ssh
     ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:smtp
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:domain
+    ACCEPT     udp  --  anywhere             anywhere            udp dpt:domain
     ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:pop3
     ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:imap
     ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:https
     ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:mysql
-    ACCEPT     all  --  anywhere             anywhere            state RELATED,ESTABLISHED
 
-    Chain FORWARD (policy ACCEPT)
+    Chain FORWARD (policy DROP)
     target     prot opt source               destination
 
     Chain OUTPUT (policy ACCEPT)
     target     prot opt source               destination
     ACCEPT     all  --  anywhere             anywhere
+
 
 #### ファイアウォールの設定:接続を許可
 iptablesを設定して，外部からSoftLayer上のVMへ接続出来るように設定を行います．SoftLayerのインスタンス上でWebサーバを起動し，ファイアウォールの設定を変更してWebサーバへの接続を許可してください．
@@ -225,24 +228,24 @@ iptablesで80(HTTP)への通信が許可されていないため，接続に失�
 
 次に，iptablesの設定で80(HTTP) の通信を許可し，再度Webサーバへ接続します．
 
-    # iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
-    # iptables -L
+    [root@iptables ~]# iptables -L
     Chain INPUT (policy DROP)
     target     prot opt source               destination
-    ACCEPT     all  --  anywhere             anywhere
+    ACCEPT     all  --  anywhere             anywhere            state RELATED,ESTABLISHED
     ACCEPT     icmp --  anywhere             anywhere
     ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ftp-data
     ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ftp
     ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ssh
     ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:smtp
+    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:domain
+    ACCEPT     udp  --  anywhere             anywhere            udp dpt:domain
     ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:pop3
     ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:imap
     ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:https
     ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:mysql
-    ACCEPT     all  --  anywhere             anywhere            state RELATED,ESTABLISHED
     ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:http
 
-    Chain FORWARD (policy ACCEPT)
+    Chain FORWARD (policy DROP)
     target     prot opt source               destination
 
     Chain OUTPUT (policy ACCEPT)
@@ -259,33 +262,95 @@ iptablesが適切に設定されていれば，Apache2 Test Pangeが表示され
 #### ファイアウォールの設定:接続を拒否
 次は，通信を許可するルールを削除して，80(HTTP)への通信をブロックします．
 
-
     # iptables -L --line-numbers
     Chain INPUT (policy DROP)
     num  target     prot opt source               destination
-    1    ACCEPT     all  --  anywhere             anywhere
+    1    ACCEPT     all  --  anywhere             anywhere            state     RELATED,ESTABLISHED
     2    ACCEPT     icmp --  anywhere             anywhere
     3    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ftp-data
     4    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ftp
     5    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:ssh
     6    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:smtp
-    7    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:pop3
-    8    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:imap
-    9    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:https
-    10   ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:mysql
-    11   ACCEPT     all  --  anywhere             anywhere            state RELATED,ESTABLISHED
-    12   ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:http
+    7    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:domain
+    8    ACCEPT     udp  --  anywhere             anywhere            udp dpt:domain
+    9    ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:pop3
+    10   ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:imap
+    11   ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:https
+    12   ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:mysql
+    13   ACCEPT     tcp  --  anywhere             anywhere            tcp dpt:http
 
-    Chain FORWARD (policy ACCEPT)
+    Chain FORWARD (policy DROP)
     num  target     prot opt source               destination
 
     Chain OUTPUT (policy ACCEPT)
     num  target     prot opt source               destination
     1    ACCEPT     all  --  anywhere             anywhere
-
-    # iptables -D INPUT 12
+    # iptables -D INPUT 13
 
 以上で80(HTTP)への通信を許可するルールが削除され，80(HTTP)への通信はブロックされます．
+
+### SSHサーバの設定
+デプロイ直後のサーバはパスワード認証でのログインを受け付けていますが，総当り攻撃でログインされる恐れがあるパスワード認証は，セキュリティ面に不安が残ります．よりセキュアな鍵交換方式でのログインを行い，サーバのセキュリティを向上します．
+
+#### 鍵ペアの生成
+鍵交換方式を利用する為には，パスワード付きの公開鍵/秘密鍵ペアを作成して適切に配置・設定する必要があります．まずは鍵ペアを作成します．
+
+    # mkdir .
+    # chmod 600 .ssh
+    # ssh-keygen –f .ssh/softlayer #入力した文字は表示されません
+
+パスワードを2回確認されるので、設定したいパスワードを2回正しく入力します。正しく入力されると、softlayer(秘密鍵ファイル)と softlayer.pub(公開鍵ファイル)の二つが作成されています。以下のコマンドで確認しましょう。
+
+    # ls .ssh
+    softlayer softlayer.pub
+
+#### 鍵の登録とログイン
+鍵が作成されたら，公開鍵をサーバに登録します．
+
+    # cd .ssh
+    # cp softlayer.pub authorized_keys # .pubファイルをコピーする
+
+その後，秘密鍵ファイルをローカルのPCにダウンロードします．ダウンロードには前節で設定したHTTPサーバを利用します．
+
+    # iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT # ファイアウォールで通信を許可
+    # chmod 644 softlayer
+    # cp ~/.ssh/softlayer /var/www/html/
+
+ファイアウォールの設定で通信を許可し，秘密鍵ファイルをWebサーバの公開フォルダに配置したら，手元のPCで秘密鍵をダウンロードします．
+
+    http://<作成したサーバのPublic IP>/softlayer
+
+秘密鍵が表示されたら，Control + Sを押して秘密鍵をローカルPCに保存します．
+
+鍵を保存したら，次は鍵を利用したサーバへのログインを行います.
+Tera Termを起動し，サーバのPublic IPアドレスを入力してOKを押します．
+
+![](images/server/ttssh-pubkey1.png)  
+
+認証画面では，ユーザー名にはroot，パスワードには公開鍵作成時に入力したパスワードを入力します．更に，「秘密鍵」ボタンを押し，ダウンロードした秘密鍵を選択します．
+![](images/server/ttssh-pubkey3.png)  
+
+右下のプルダウンメニューを「すべてのファイル」に変更し，ダウンロードした秘密鍵ファイルを選択します．
+![](images/server/ttssh-pubkey4.png)  
+
+OKを押してターミナル画面が表示されたら，鍵交換方式でのログイン成功です．
+
+#### パスワード認証の拒否
+鍵交換方式でのログイン設定を行ったら，パスワードでのログイン要求を拒否します．
+
+    # nano -w /etc/ssh/sshd_config
+    (45行目付近)
+    RSAAuthentication yes # コメントアウトを解除
+    PubkeyAuthentication yes # コメントアウトを解除
+    (60行目付近)
+    PasswordAuthentication no # コメントアウトを解除してnoに変更
+
+設定を変更したらSSHサーバを再起動します．
+
+    # service sshd restart
+
+これで鍵交換方式の設定は終了です．
+
 
 ## Command Line Interface(CLI)
 ### SoftLayerコマンドラインクライアントとは
@@ -306,7 +371,8 @@ PythonのセットアップにはPyEnvを使用します．インストールの
 # pyenv install 2.7.11 (完了まで少々時間がかかります．)
 # pyenv rehash
 # pyenv global 2.7.11
-# easy_install importlib softlayer
+# easy_install importlib
+# pip install softlayer
 ```
 
 
@@ -435,7 +501,7 @@ $ slcli vs list
 仮想サーバの詳細を表示します。
 
 ```
-$ slcli vs detail 198.11.123.11
+$ slcli vs detail インスタンスのPublic IP
 :....................:......................................:
 :               Name : Value                                :
 :....................:......................................:
@@ -585,7 +651,6 @@ SoftLayerには、スタンダードイメージとフレックスイメージ�
 管理ポータルから[Devices]→[Device List]をクリックしてデバイス一覧を表示してください。
 イメージを作成したいサーバをクリックして、[Action]→[Create Image Template]をクリックしてください。
 
-**TODO:画像変える**
 ![](images/server/image48.png)
 
 > 注意:下記のネーミングでイメージを作成してください。  
@@ -609,86 +674,10 @@ Note: “貸与されたアカウント名”-image 例: sluser01-image
 ![](images/server/image50.png)
 
 ### イメージテンプレートを用いたデプロイ
-**TODO: 画像**  
-取得したイメージテンプレートを基に，仮装インスタンスをデプロイします．管理ポータルから[Device] – [Device list] – 自分のサーバと開き，右端の[Actions] – [Order Hourly Virtual Server]を選択してください．
+取得したイメージテンプレートを基に，仮装インスタンスをデプロイします．管理ポータルから[Device]→[Manage]→[Images]を開き，右端の[Actions] – [Order Hourly Virtual Server]を選択してください．
 
-注文ウィザードが表示されます．一番上の[Location] - [DATA CENTER] と，注文確定画面のHost and Domain Names設定肢，注文に進んで下さい．
+注文ウィザードが表示されます．一番上の[Location] - [DATA CENTER] と，注文確定画面のHost and Domain Names設定し，注文に進んで下さい．
 
 ![](images/server/image14.png)  
 
 以上で，イメージテンプレートを用いた仮想マシンのデプロイは完了しました．同じ構成のマシンを多数，高速に展開したい場合はイメージテンプレートを利用すると仁宗｀くなデプロイが可能です．
-
-## CLI (Command Line Interface)
-
-今回のハンズオンでCLIは、インストールと環境設定、使用法を紹介する程度に留めています。
-
-### SoftLayerコマンドラインクライアントとは
-SoftLayerコマンドラインクライアントとは、SoftLayerをコマンドラインから操作するためにPythonで作成されたツールです。
-
-### SoftLayerコマンドラインクライアントのインストール
-Pythonのeasy_installコマンドでCLIをインストールしてください。ここでは、自分の作成したサーバにSoftLayerコマンドラインクライアントをインストールします。
-
-
-
-Red Hat系
-
-
-
-なお、WindowsでもCLIは使用可能です。次のドキュメントをご確認ください。
-https://www.ibm.com/developerworks/community/files/form/anonymous/api/library/b1409dc8-fbc4-4d02-b799-b70334c67b92/document/78fa4030-97ab-4c70-8b7b-d15e90b469b4/media/SL_CLI%E5%B0%8E%E5%85%A5%E6%96%B9%E6%B3%95_20140213.pdf
-
-プロジェクト・タイトル
-======================
-ここにプロジェクトの概要を書きます
-行末にスペースを2つ入れると  
-改行されます。
-
-段落を分けるには、[空行](http://example.com/) を入れます。
-
-使い方
-------
-### インライン ###
-インラインのコードは、**バッククォート** (`` ` ``) で囲みます。
-
-### ブロックレベル ###
-    <script type="text/javascript" src="jquery.min.js"></script>
-    <script type="text/javascript">
-    $(function() {
-        alert($); /* 先頭に4文字のスペース、
-                     もしくはタブを挿入します */
-    });
-    </script>
-
-パラメータの解説
-----------------
-リストの間に空行を挟むと、それぞれのリストに `<p>` タグが挿入され、行間が
-広くなります。
-
-    def MyFunction(param1, param2, ...)
-
-+   `param1` :  
-    _パラメータ1_ の説明
-
-+   `param2` :  
-    _パラメータ2_ の説明
-
-関連情報
---------
-### リンク、ネストしたリスト
-1. [リンク1](http://example.com/ "リンクのタイトル")
-    * ![画像1](http://github.com/unicorn.png "画像のタイトル")
-2. [リンク2][link]
-    - [![画像2][image]](https://github.com/)
-
-  [link]: http://example.com/ "インデックス型のリンク"
-  [image]: http://github.com/github.png "インデックス型の画像"
-
-### 引用、ネストした引用
-> これは引用です。
->
-> > スペースを挟んで `>` を重ねると、引用の中で引用ができますが、
-> > GitHubの場合、1行前に空の引用が無いと、正しくマークアップされません。
-
-ライセンス
-----------
-Copyright &copy; 2011 IBM Japan
