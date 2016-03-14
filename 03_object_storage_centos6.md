@@ -52,8 +52,7 @@ cloudfuse を利用したマウントの 3 種類のアクセスを通して、�
 
 
 ### 管理ポータルへのログイン
-SoftLayer の利用は、管理ポータルから操作します。まず、https://control.softlayer.com/ にアクセスして、ロ
-グインしてください。
+SoftLayer の利用は、管理ポータルから操作します。まず、https://control.softlayer.com/ にアクセスして、ログインしてください。
 
 ![](images/network/image2.png)    
 
@@ -61,7 +60,7 @@ SoftLayer の利用は、管理ポータルから操作します。まず、http
 > ※ 最初にログオンされた方は、パスワードの変更を促されますので、変更してください。
 
 >※ 同じネットワークからのログイン要求で、パスワードを連続 3 回間違えると、そのネットワークからのログイン要求を 30
-分間遮断しますので、パスワードは慎重にいれてください。
+分間遮断しますので、パスワードは慎重に入力してください。
 
 >※ ブラウザは、Chrome、Firefox をお勧めします。Internet Explore は表示されない場合があります
 
@@ -92,15 +91,13 @@ Order]をクリックしてください。
 
 ### Object Storageのセットアップ
 [Storage]→[Object Storage] を選択してください。
-アカウントの一覧が表示された後に、自動で Object Storage ユーザーの管理ポータルに遷移します。自動で遷
-移しない場合は、オブジェクトストレージのアカウント名の部分をクリックしてください。
+アカウントの一覧が表示された後に、自動で Object Storage ユーザーの管理ポータルに遷移します。自動で遷移しない場合は、オブジェクトストレージのアカウント名の部分をクリックしてください。
 
 ![](images/storage/image8.png)    
 
 ### Locations
-Object Storage をデプロイ出来るデータセンター一覧が表示されます。2014 年 7 月現在、Dallas、Hong
-Kong、Singapore、San Jose、Amsterdam、London、Toronto の 7 箇所の中から選択することができます。
-今回は「San Jose 1..」を選択します。
+Object Storage をデプロイ出来るデータセンター一覧が表示されます。
+本ハンズオンでは「San Jose 1..」を選択します。
 
 > 講師の指定がある場合はそちらのデータセンターを選択してください。
 
@@ -169,14 +166,14 @@ Object Storage は HTTP REST を経由して操作するストレージです。
 
 curl コマンドを用いることで、HTTP リクエストを生成することができます。試しに Web サイトへのリクエストを行ってみましょう。
 
-    # curl http://www.ibm.com/jp/ja/
+    # curl http://www.ibm.com/jp-ja/
 
 適切に実行が終了したら、Web サイトの HTML ソースが出力されます。
 
 curl で Object Storage へアクセスするには様々な手順が必要ですが、今回のハンズオンでは実際にアクセスする
 為のコマンドを生成するスクリプトが準備されています。まずはスクリプトをダウンロードしましょう。
 
-    # wget http://www.ibm.com/ibm/jp/cloud/pdf/curl_command.zip
+    # wget http://shiro.ma/curl_command.zip **変更してください**
     # unzip curl_command.zip
     # cd handson
 
@@ -280,7 +277,7 @@ Cloudfuse のソースコードをダウンロードします
 展開し、インストールします
 
     # tar -xvf cloudfuse.tar.gz
-    # cd redbo-cloudfuse-21358f1
+    # cd redbo-cloudfuse-89787b8
     # ./configure && make && make install
 
 インストールが完了した後、cloudfuse が利用する設定ファイルを、root のホームディレクトリに.cloudfuse という名前で作成します。ファイル名の先頭のドットを入れ忘れないようにご注意ください。
@@ -581,10 +578,10 @@ CDN 経由で HTTP アクセスする為の URL を作成し、実際にダウ�
 (本ハンズオンで利用した環境を、ハンズオン終了後も利用される方は、残しておいても問題ありませんが、課金されることをご理解いただければと思います)
 
 #### オブジェクトストレージの削除
-- 管理ポータル  Object Storage  Container でファイルを削除
+- 管理ポータル - Object Storage - Container でファイルを削除
 > IBM から貸与しているアカウントを利用している方は、Container を削除しないでください。
 
-- 管理ポータル  Object Storage  Container の横にある削除ボタンをクリックし、”Are you sure you want to delete コンテナ名”という
+- 管理ポータル - Object Storage - Container の横にある削除ボタンをクリックし、”Are you sure you want to delete コンテナ名”という
 ダイアログがポップアップされるので、”Yes”をクリック
 
 ![](images/storage/image36.png)
