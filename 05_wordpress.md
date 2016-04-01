@@ -19,7 +19,7 @@
 - IBMから貸与しているアカウントを利用している場合は、本資料に記載している以外のサービスを注文しないように注意してください。
 - 講師の指定がない限り、本ハンズオンで作成するサーバーは、時間課金サーバー (Virtual Server (public node) - Hourly)を選択してください。
 
-- [COMMAND]の記述がある部分は、実際にコマンド等の入力作業を行う箇所です。資料の内容を参考に、サーバにコマンドを入力してください。
+- **[COMMAND]**の記述がある部分は、実際にコマンド等の入力作業を行う箇所です。資料の内容を参考に、サーバにコマンドを入力してください。
 
 
 ## ハンズオンの概要
@@ -100,7 +100,7 @@ YDXvIbu4OjMhqUWumG+XJkQ== root@workingvm
 
 ![](images/wordpress/image3.png)
 
-SSH鍵の管理メニューgあ表示されたら、右上のAddをクリックします。
+SSH鍵の管理メニューが表示されたら、右上のAddをクリックします。
 
 ![](images/wordpress/image4.png)
 
@@ -177,9 +177,14 @@ Provisioning Scriptは注文確定画面最終段階で設定可能です。URL1
 
 Provisioning Scriptでセットアップを行った場合は、すぐにZabbixを利用できる状態になっています。ブラウザからZabbixのセットアップを行って利用を開始しましょう。セットアップは以下のURLから開始できます。
 
-> http://ZabbixサーバのPublic IPアドレス/
+> http://ZabbixサーバのPublic IPアドレス/zabbix/
 
-インストールはウィザード形式になっています。「3: Configure DB connection」では、Database Name,User,Passwordの全てにzabbixと入力してください。それ以外は全て右下のNextをクリックし、ウィザードを進めてください。
+インストールはウィザード形式になっています。「3: Configure DB connection」では、Database Name,User,Passwordの全てにzabbixと入力して、Test Connectionで設定を確認してください。それ以外は全て右下のNextをクリックし、ウィザードを進めてください。
+
+![](images/wordpress/image8.5-1.png)
+
+![](images/wordpress/image8.5-2.png)
+
 
 インストールウィザードが終了したら、ログイン画面が表示されます。デフォルトのパスワードはAdmin/zabbixです。早速ログインしてみましょう。
 
