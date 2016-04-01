@@ -475,12 +475,14 @@ upstream wpnode {
 
 **[COMMAND]**
 
-> [root@frontweb ~]# nginx -t
-> [root@frontweb ~]# service nginx reload
+```
+[root@frontweb ~]# nginx -t
+[root@frontweb ~]# service nginx reload
+```
 
 以上でLoad Balancerの設定は完了です。再度以下のURLを開いてみましょう。
 
-> http://<Load BalancerのパブリックIPアドレス>/
+> http://Load BalancerのパブリックIPアドレス/
 
 適切に設定されていれば、背後のWordPressサーバに設定したWordPressのページが表示されます。
 適切に表示される事を確認したら、、Wordpressの管理者アカウントでログインし、Settings - General Settingsで、下記設定を変更してください。
@@ -639,7 +641,7 @@ sync {
 
 ![](images/wordpress/image22.png)
 
-設定画面が表示されるので、内容を登録します。Host Nameに各サーバのホスト名を、Visible NameにはZabbix上で表示される名前を指定します。Groupsでは、右にあるLinux servesをクリックして << ボタンを押すことで選択できます。下のAgent InterfaceのIPアドレスには各ノードのSoftLayerのPrivate IP Addressを登録してください。入力が完了したら、最下段のAddをクリックすることで、ノードのZabbixへの登録が完了します。
+設定画面が表示されるので、内容を登録します。Host Nameに各サーバのホスト名を、Visible NameにはZabbix上で表示される名前を指定します。Groupsでは、右にあるLinux servesをクリックして \<\< ボタンを押すことで選択できます。下のAgent InterfaceのIPアドレスには各ノードのSoftLayerのPrivate IP Addressを登録してください。入力が完了したら、最下段のAddをクリックすることで、ノードのZabbixへの登録が完了します。
 
 ![](images/wordpress/image23.png)
 
