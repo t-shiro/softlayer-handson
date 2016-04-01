@@ -381,7 +381,7 @@ uid=497(nginx) gid=498(nginx) groups=498(nginx)
 [root@backweb ~]# vi /etc/wordpress/wp-config.php
 
 /** Change uploads folder to SoftLayer object storage*/
-define('UPLOADS', '/wp-content/uploads/<コンテナ名 例: student1031-sjc01-container>');
+define('UPLOADS', '/wp-content/uploads/\<コンテナ名 例: student1031-sjc01-container\>');
 ```
 
 
