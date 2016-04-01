@@ -58,7 +58,7 @@ SoftLayerでは、管理ポータルにSSHの公開鍵を事前に登録して�
 
 **[COMMAND]**
 
-```bash:test.sh
+```
 # ssh-keygen
 Generating public/private rsa key pair.
 Enter file in which to save the key (/root/.ssh/id_rsa):
@@ -83,6 +83,8 @@ The key's randomart image is:
 ```
 
 SoftLayerのポータルには公開鍵を登録します。作成した公開鍵を確認してみましょう。
+
+**[COMMAND]**
 
 ```
 # cat .ssh/id_rsa.pub
@@ -217,6 +219,7 @@ Zabbixサーバのセットアップは以上で完了です。引き続き他�
 
 ログインしたら、以上の内容がセットアップされていることを確認しましょう。
 
+**[COMMAND]**
 
 ```
 [root@db ~]# yum list installed | grep -i -e mysql -e zabbix
@@ -275,6 +278,8 @@ mysql>select Host, User, Password from mysql.user;
 
 WordPressサーバのProvisioning Scriptでは、WordPressを構成するために必要なほぼすべての設定が自動化されていますが、DBサーバの設定だけは自分で変更する必要があります。前節で注文したバックエンドDBサーバのPrivate IP Addressを確認し、WordPressの設定ファイルに変更を加えましょう。
 
+**[COMMAND]**
+
 ```
 [root@backweb ~]# vi /etc/wordpress/wp-config.php
 
@@ -326,12 +331,16 @@ SoftLayer Object StorageはCDNと連携させることができます。必要�
 #### Cloudfuseのインストール
 Object Storageが利用できるようになったら、各WordPressサーバにObject Storageをマウントして利用するためのCloudfuseというソフトウェアを導入します。まずはCloudfuseのビルドに必要なソフトウェアをインストールします。
 
+**[COMMAND]**
+
 ```
 yum groupinstall "Development Tools"
 yum install libxml2-devel libcurl-devel fuse-devel openssl-devel json-c-devel
 ```
 
 Cloudfuseのソースコードをダウンロード・展開・インストールします
+
+**[COMMAND]**
 
 ```
 # wget -O cloudfuse.tar.gz https://github.com/redbo/cloudfuse/tarball/master
@@ -344,6 +353,8 @@ Cloudfuseのソースコードをダウンロード・展開・インストー�
 インストールが完了した後、cloudfuseが利用する設定ファイルを、rootのホームディレクトリに.cloudfuseという名前で作成します。ファイル名の先頭のドットを入れ忘れないようにご注意ください。
 .cloudfuseには、先ごろと同様に、「View Credentials」で確認できるユーザー名やパスワード、エンドポイント情報を記述します。情報は適宜ご自分の内容と読み替えてください。
 
+**[COMMAND]**
+
 ```
 # vi ~/.cloudfuse
 記述例:
@@ -354,6 +365,8 @@ authurl=https://xxxxx.objectstorage.service.networklayer.com/auth/v1.0/
 
 CloudfuseでObject Storageをマウントして、WordPressにアップロードされた画像を共有します。その際、画像アップロードフォルダにNginxが書き込める必要があるため、NginxのユーザーIDでObject Storageをマウントしましょう。
 
+**[COMMAND]**
+
 ```
 # id nginx
 uid=497(nginx) gid=498(nginx) groups=498(nginx)
@@ -362,10 +375,15 @@ uid=497(nginx) gid=498(nginx) groups=498(nginx)
 
 画像をSoftLayer Object Storageの指定コンテナにアップロードするようにwp-config.phpを変更します。
 
+**[COMMAND]**
+
+```
 [root@backweb ~]# vi /etc/wordpress/wp-config.php
 
 /** Change uploads folder to SoftLayer object storage*/
 define('UPLOADS', '/wp-content/uploads/<コンテナ名 例: student1031-sjc01-container>');
+```
+
 
 ## Load Balancer
 ### Load Balancerの導入と設定
@@ -402,6 +420,7 @@ Nginxのデフォルトページが表示されていればインストールが
 
 Load Balancerが配下のWordPressサーバに要求を転送する設定をNginxに施します。
 
+**[COMMAND]**
 
 ```
 [root@frontweb ~]# vi /etc/nginx/conf.d/default.conf
@@ -425,6 +444,8 @@ Load Balancerが配下のWordPressサーバに要求を転送する設定をNgin
 
 更に、設定ファイル末尾に以下の設定を追加します。
 
+**[COMMAND]**
+
 ```
 upstream wpnode {
     server WordPressサーバ1台目のPrivate IP Address;
@@ -433,6 +454,8 @@ upstream wpnode {
 ```
 
 続いてキャッシュの設定を施します。ファイルの末尾近くに設定を追加します。
+
+**[COMMAND]**
 
 ```
 [root@frontweb ~]# vi /etc/nginx/nginx.conf
@@ -449,6 +472,8 @@ upstream wpnode {
 ```
 
 設定変更を終えたら、設定ファイルのsyntaxを確認の上、問題なければreloadして反映します。
+
+**[COMMAND]**
 
 > [root@frontweb ~]# nginx -t
 > [root@frontweb ~]# service nginx reload
@@ -495,6 +520,8 @@ Nginx Cache Controllerはコンテンツ更新時にキャッシュを制御で�
 
 リバースプロキシ、WordPressサーバともにlsyncdのセットアップはProvisioning Script内で完了しています。通信に必要な鍵ファイルを適切に配置し、lsyncdの設定ファイルを用意して自動同期環境を構築しましょう。同期はNginxユーザーで行う必要があるため、権限を適切に設定する必要があります。自動で同期を行うために、作業用インスタンス上でパスワードを要求されない空の鍵ペアを作成し、ロードバランサーとWordPressノードの双方に配置します。
 
+**[COMMAND]**
+
 ```
 [root@workingvm ~]# ssh-keygen -f emptypass
 Generating public/private rsa key pair.
@@ -523,6 +550,8 @@ The key's randomart image is:
 
 作成した鍵ペアを各サーバで適切に配置します。
 
+**[COMMAND]**
+
 ```
 [root@frontweb ~]# ssh root@[ロードバランサーのPublic IP Address]
 [root@lb ~]# mv /tmp/.ssh/emptypass.pub /tmp/.ssh/authorized_keys
@@ -532,6 +561,8 @@ The key's randomart image is:
 同様の設定をWordPressサーバ1と2でも行ってください。
 
 最後に、lsyncdの設定ファイルを編集し、同期を行います。ロードバランサーは配下のWordPressサーバ1と2の両方と動機する設定を、WordPressノードはロードバランサーノードとのみ同期する設定を行います。まずはロードバランサーノードの設定です。
+
+**[COMMAND]**
 
 ```
 [root@lb ~]# vi /etc/lsyncd.conf
@@ -568,6 +599,8 @@ sync {
 ```
 
 WordPressノード1、2に設定ファイルを追加し、同期するためのディレクトリを作成してください。
+
+**[COMMAND]**
 
 ```
 [root@backweb ~]# vi /etc/lsyncd.conf
