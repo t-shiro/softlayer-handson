@@ -59,7 +59,7 @@ SoftLayerでは、管理ポータルにSSHの公開鍵を事前に登録して�
 **[COMMAND]**
 
 ```
-# ssh-keygen
+[root@workingvm ~]# ssh-keygen
 Generating public/private rsa key pair.
 Enter file in which to save the key (/root/.ssh/id_rsa):
 Enter passphrase (empty for no passphrase):　[パスワードを入力/表示されません]
@@ -87,7 +87,7 @@ SoftLayerのポータルには公開鍵を登録します。作成した公開�
 **[COMMAND]**
 
 ```
-# cat .ssh/id_rsa.pub
+[root@workingvm ~]# cat .ssh/id_rsa.pub
 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAuIcTA+XZ2fSjOFkpx4VRyLoC3N5Iye1XvDi
 wN85DvbZIHCejpJ2R6m+5rK8Un1ewQI/xJQmm2uJu6UPPX2N7nGC0dVYkvVA0mcd+r0ozOb
 I9N40jMgLwnVaVHHf/1YD6wogbl137Pd3y/jzijPw7mNv9F4DAeNeLl1VDqLwm3Q+L2XGKp
@@ -227,6 +227,8 @@ Zabbixサーバのセットアップは以上で完了です。引き続き他�
 **[COMMAND]**
 
 ```
+[root@workingvm ~] ssh root@Database VMのPublic IPアドレス
+Enter passphrase for key '/root/.ssh/id_rsa': [鍵作成時に入力したパスワードを入力]
 [root@db ~]# yum list installed | grep -i -e mysql -e zabbix
 mysql.x86_64          5.1.73-5.el6_6    @updates
 mysql-libs.x86_64     5.1.73-5.el6_6    @updates
@@ -237,7 +239,7 @@ zabbix-agent.x86_64   2.4.5-1.el6       @zabbix
 zabbix-get.x86_64     2.4.5-1.el6       @zabbix
 zabbix-release.noarch 2.4-1.el6         installed
 
-[root@db ~]# mysql -u root -
+[root@db ~]# mysql -u root -p
 Enter password: [Enter]
 Welcome to the MySQL monitor.  Commands end with ; or \g.
 (中略)
@@ -286,7 +288,8 @@ WordPressサーバのProvisioning Scriptでは、WordPressを構成するため�
 **[COMMAND]**
 
 ```
-[root@backweb ~]# vi /etc/wordpress/wp-config.php
+[root@workingvm ~] ssh root@WordPressサーバのPublic IPアドレス
+[root@wordpress1 ~]# vi /etc/wordpress/wp-config.php
 
 /** MySQL hostname */
 define('DB_HOST', 'DBサーバのPrivate IP address');
@@ -334,13 +337,16 @@ SoftLayer Object StorageはCDNと連携させることができます。必要�
 ![](images/wordpress/image13.png)
 
 #### Cloudfuseのインストール
+
+**以下の設定は、二台のWordPressサーバの両方で実行してください**
+
 Object Storageが利用できるようになったら、各WordPressサーバにObject Storageをマウントして利用するためのCloudfuseというソフトウェアを導入します。まずはCloudfuseのビルドに必要なソフトウェアをインストールします。
 
 **[COMMAND]**
 
 ```
-yum groupinstall "Development Tools"
-yum install libxml2-devel libcurl-devel fuse-devel openssl-devel json-c-devel
+[root@wordpress1 ~]# yum groupinstall "Development Tools"
+[root@wordpress1 ~]# yum install libxml2-devel libcurl-devel fuse-devel openssl-devel json-c-devel
 ```
 
 Cloudfuseのソースコードをダウンロード・展開・インストールします
@@ -348,10 +354,10 @@ Cloudfuseのソースコードをダウンロード・展開・インストー�
 **[COMMAND]**
 
 ```
-# wget -O cloudfuse.tar.gz https://github.com/redbo/cloudfuse/tarball/master
-# tar -xvf cloudfuse.tar.gz
-# cd redbo-cloudfuse-871a98f
-# ./configure && make && make install
+[root@wordpress1 ~]# wget -O cloudfuse.tar.gz https://github.com/redbo/cloudfuse/tarball/master
+[root@wordpress1 ~]# tar -xvf cloudfuse.tar.gz
+[root@wordpress1 ~]# cd redbo-cloudfuse-871a98f
+[root@wordpress1 ~]# ./configure && make && make install
 ```
 
 
@@ -361,21 +367,21 @@ Cloudfuseのソースコードをダウンロード・展開・インストー�
 **[COMMAND]**
 
 ```
-# vi ~/.cloudfuse
+[root@wordpress1 ~]# vi ~/.cloudfuse
 記述例:
 username=SLOS351234-2:SL351234
 api_key=33e2b*****
 authurl=https://xxxxx.objectstorage.service.networklayer.com/auth/v1.0/
 ```
 
-CloudfuseでObject Storageをマウントして、WordPressにアップロードされた画像を共有します。その際、画像アップロードフォルダにNginxが書き込める必要があるため、NginxのユーザーIDでObject Storageをマウントしましょう。
+CloudfuseでObject Storageをマウントして、WordPressにアップロードされた画像を共有します。その際、画像アップロードフォルダにNginxが書き込める必要があるため、NginxのuidでObject Storageをマウントしましょう。
 
 **[COMMAND]**
 
 ```
-# id nginx
+[root@wordpress1 ~]# id nginx
 uid=497(nginx) gid=498(nginx) groups=498(nginx)
-# cloudfuse -o uid=497 -o allow_other /usr/share/wordpress/wp-content/uploads
+[root@wordpress1 ~]# cloudfuse -o uid=497 -o allow_other /usr/share/wordpress/wp-content/uploads
 ```
 
 画像をSoftLayer Object Storageの指定コンテナにアップロードするようにwp-config.phpを変更します。
@@ -383,10 +389,10 @@ uid=497(nginx) gid=498(nginx) groups=498(nginx)
 **[COMMAND]**
 
 ```
-[root@backweb ~]# vi /etc/wordpress/wp-config.php
-
+[root@wordpress1 ~]# vi /etc/wordpress/wp-config.php
+末尾に追加
 /** Change uploads folder to SoftLayer object storage*/
-define('UPLOADS', '/wp-content/uploads/<コンテナ名 例: student1031-sjc01-container>');
+define('UPLOADS', '/wp-content/uploads/コンテナ名 例: student1031-sjc01-container');
 ```
 
 
@@ -428,7 +434,8 @@ Load Balancerが配下のWordPressサーバに要求を転送する設定をNgin
 **[COMMAND]**
 
 ```
-[root@frontweb ~]# vi /etc/nginx/conf.d/default.conf
+[root@workingvm ~] ssh root@ロードバランサVMのPublic IPアドレス
+[root@lb ~]# vi /etc/nginx/conf.d/default.conf
 
 編集前
     location / {
@@ -447,7 +454,7 @@ Load Balancerが配下のWordPressサーバに要求を転送する設定をNgin
     }
 ```
 
-更に、設定ファイル末尾に以下の設定を追加します。
+更に、default.confの末尾に以下の設定を追加します。
 
 **[COMMAND]**
 
@@ -500,7 +507,7 @@ upstream wpnode {
 #### Nginx cache controllerの導入
 コンテンツのキャッシュはサーバの応答速度の向上に非常に有用です。しかし、内容が更新されたにも関わらず古い内容がキャッシュとして残り続けるのは問題です。これを解決するために、WordPressにNginx cache controllerプラグインを導入します。このプラグインを導入することで、記事を更新した際に、リバースプロキシに対して古いキャッシュを破棄し内容を更新するよう指示することができます。
 
-Nginx cache controllerプラグインは既にインストールされているので、WordPressの管理メニューから有効化できます。管理メニューのPluginからNginx Cache Controllerを選択し、Activateしてください。
+Nginx cache controllerプラグインは既にインストールされているので、WordPressの管理メニューから有効化できます。管理メニューのPluginからNginx Cache ControllerのActivateをクリックしてください。
 
 ![](images/wordpress/image16.png)
 
@@ -512,7 +519,7 @@ Settings for Flush Cacheのカテゴリで、Enable Flush Cache を Yesと選択
 
 ![](images/wordpress/image18.png)
 
-前述で設定した通り、Cache Directoryを変更します。
+Cache Directoryを、前述で設定したproxy_cache_pathに変更します。
 
 ![](images/wordpress/image19.png)
 
@@ -530,7 +537,7 @@ Nginx Cache Controllerはコンテンツ更新時にキャッシュを制御で�
 **[COMMAND]**
 
 ```
-[root@workingvm ~]# ssh-keygen -f emptypass
+[root@workingvm ~]# ssh-keygen -f ~/.ssh/emptypass
 Generating public/private rsa key pair.
 Enter passphrase (empty for no passphrase): (何も入力せずEnter)
 Enter same passphrase again: (何も入力せずEnter)
@@ -550,9 +557,9 @@ The key's randomart image is:
 |                 |
 |                 |
 +-----------------+
-[root@ workingvm ~]# scp -r ~/.ssh root@[ロードバランサーのPublic IP Address]:/tmp
-[root@ workingvm ~]# scp -r ~/.ssh root@[WordPressサーバ1のPublic IP Address]:/tmp
-[root@ workingvm ~]# scp -r ~/.ssh root@[WordPressサーバ2のPublic IP Address]:/tmp
+[root@workingvm ~]# scp -r ~/.ssh root@[ロードバランサーのPublic IP Address]:/tmp
+[root@workingvm ~]# scp -r ~/.ssh root@[WordPressサーバ1のPublic IP Address]:/tmp
+[root@workingvm ~]# scp -r ~/.ssh root@[WordPressサーバ2のPublic IP Address]:/tmp
 ```
 
 作成した鍵ペアを各サーバで適切に配置します。
@@ -603,14 +610,19 @@ sync {
     delete = "running",
     init  = false,
 }
+[root@lb ~]# /etc/init.d/lsyncd start
 ```
 
-WordPressノード1、2に設定ファイルを追加し、同期するためのディレクトリを作成してください。
+WordPressノードに設定ファイルを追加し、同期するためのディレクトリを作成してください。
+
+**以下の設定は、二台のWordPressサーバ両方で実行してください**
 
 **[COMMAND]**
 
 ```
-[root@backweb ~]# vi /etc/lsyncd.conf
+[root@wordpress1 ~]# mkdir /var/cache/nginx/cache
+[root@wordpress1 ~]# chown –R nginx:nginx /var/cache/nginx/cache
+[root@wordpress1 ~]# vi /etc/lsyncd.conf
 
 settings {
     logfile = "/var/log/lsyncd/lsyncd.log",
@@ -631,8 +643,7 @@ sync {
     init  = false
 }
 
-[root@backweb ~]# mkdir /var/share/nginx/cache
-[root@backweb ~]# chown –R nginx:nginx /var/cache/nginx/cache
+[root@wordpress1 ~]# /etc/init.d/lsyncd start
 ```
 
 以上でキャッシュファイルを同期するlsyncdの設定が完了しました。各サーバでlsyncdを起動すると、キャッシュファイルが同期されるようになります。
