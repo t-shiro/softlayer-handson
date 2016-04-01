@@ -263,7 +263,7 @@ mysql>select Host, User, Password from mysql.user;
 |Hardware & Software Firewall|None                                                                                     |
 |Monitoring                  |Host Ping                                                                                |
 |Response                    |Automated Notification                                                                   |
-|Provisioning Scripts        |https://shiro.ma/sl/db.sh                                                                                |
+|Provisioning Scripts        |https://shiro.ma/sl/backweb_nginx.sh                                                                                |
 |SSH Key|登録したSSH Keyのラベルを選択 例: student1031|
 |Host Name                   |ご自身のアカウントを利用している方: 任意<br>IBM から貸与したアカウントを利用している方: アカウント名-wordpress1|
 |Domain Name                 |ご自身のアカウントを利用している方: 任意<br>IBM から貸与したアカウントを利用している方: handson.jp  |
@@ -381,7 +381,7 @@ uid=497(nginx) gid=498(nginx) groups=498(nginx)
 [root@backweb ~]# vi /etc/wordpress/wp-config.php
 
 /** Change uploads folder to SoftLayer object storage*/
-define('UPLOADS', '/wp-content/uploads/\<コンテナ名 例: student1031-sjc01-container\>');
+define('UPLOADS', '/wp-content/uploads/<コンテナ名 例: student1031-sjc01-container>');
 ```
 
 
