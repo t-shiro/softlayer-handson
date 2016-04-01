@@ -58,7 +58,7 @@ SoftLayerでは、管理ポータルにSSHの公開鍵を事前に登録して�
 
 **[COMMAND]**
 
-```
+```bash:test.sh
 # ssh-keygen
 Generating public/private rsa key pair.
 Enter file in which to save the key (/root/.ssh/id_rsa):
