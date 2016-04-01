@@ -382,6 +382,7 @@ define('UPLOADS', '/wp-content/uploads/<コンテナ名 例: student1031-sjc01-c
 
 ## Load Balancer
 ### Load Balancerの導入と設定
+#### Load Balancerのデプロイ
 次は負荷分散機構のLoad Balancerをデプロイしてみましょう。Load balancerには新進気鋭のWebサーバ、Nginxを利用します。Nginxは負荷分散と同時に流通しているコンテンツをキャッシュできるため、更なる通信負荷の低減を見込むことができます。
 
 
@@ -476,3 +477,173 @@ upstream wpnode {
 > Site Address (URL): http://Load BalancerのパブリックIPアドレス<br>
 
 ![](images/wordpress/image15.png)
+
+#### Nginx cache controllerの導入
+コンテンツのキャッシュはサーバの応答速度の向上に非常に有用です。しかし、内容が更新されたにも関わらず古い内容がキャッシュとして残り続けるのは問題です。これを解決するために、WordPressにNginx cache controllerプラグインを導入します。このプラグインを導入することで、記事を更新した際に、リバースプロキシに対して古いキャッシュを破棄し内容を更新するよう指示することができます。
+
+Nginx cache controllerプラグインは既にインストールされているので、WordPressの管理メニューから有効化できます。管理メニューのPluginからNginx Cache Controllerを選択し、Activateしてください。
+
+![](images/wordpress/image16.png)
+
+有効になると、左上にNginx Cacheメニューが出現します。
+
+![](images/wordpress/image17.png)
+
+Settings for Flush Cacheのカテゴリで、Enable Flush Cache を Yesと選択します。
+
+![](images/wordpress/image18.png)
+
+前述で設定した通り、Cache Directoryを変更します。
+
+![](images/wordpress/image19.png)
+
+コンテンツ投稿時の振る舞いを確認します。記事が投稿された時にはキャッシュを全て、コメントが投稿された場合は該当のページのキャッシュのみを削除します。
+
+![](images/wordpress/image20.png)
+
+最後に、Save Changesをクリックし、キャッシュ制御の設定は完了です。
+
+#### コンテンツキャッシュの同期設定
+Nginx Cache Controllerはコンテンツ更新時にキャッシュを制御できますが、このプラグインはWordPressサーバとリバースプロキシが同一のサーバで動作する環境を想定しているため、本ハンズオンのようにリバースプロキシとWordPressサーバを分離している環境では適切に動作しません。そこで、lsyncdを用いてフロントエンドのリバースプロキシとバックエンドのWordPressサーバ間でキャッシュファイルを同期し、WordPressサーバがNginx Cache Controllerを用いてリバースプロキシのキャッシュファイルを削除できるようにします。
+
+リバースプロキシ、WordPressサーバともにlsyncdのセットアップはProvisioning Script内で完了しています。通信に必要な鍵ファイルを適切に配置し、lsyncdの設定ファイルを用意して自動同期環境を構築しましょう。同期はNginxユーザーで行う必要があるため、権限を適切に設定する必要があります。自動で同期を行うために、作業用インスタンス上でパスワードを要求されない空の鍵ペアを作成し、ロードバランサーとWordPressノードの双方に配置します。
+
+```
+[root@workingvm ~]# ssh-keygen -f emptypass
+Generating public/private rsa key pair.
+Enter passphrase (empty for no passphrase): (何も入力せずEnter)
+Enter same passphrase again: (何も入力せずEnter)
+Your identification has been saved in /root/.ssh/emptypass.
+Your public key has been saved in /root/.ssh/emptypass.pub.
+The key fingerprint is:
+cc:5e:59:21:44:99:42:e3:26:5e:73:41:bb:70:af:45 root@workingvm
+The key's randomart image is:
++---[RSA 2048]----+
+|       .o+*o.    |
+|       ...o+ .   |
+|      . *.+ E    |
+|     . * = *     |
+|      . S + o    |
+|       . . o     |
+|        . .      |
+|                 |
+|                 |
++-----------------+
+[root@ workingvm ~]# scp -r ~/.ssh root@[ロードバランサーのPublic IP Address]:/tmp
+[root@ workingvm ~]# scp -r ~/.ssh root@[WordPressサーバ1のPublic IP Address]:/tmp
+[root@ workingvm ~]# scp -r ~/.ssh root@[WordPressサーバ2のPublic IP Address]:/tmp
+```
+
+作成した鍵ペアを各サーバで適切に配置します。
+
+```
+[root@frontweb ~]# ssh root@[ロードバランサーのPublic IP Address]
+[root@lb ~]# mv /tmp/.ssh/emptypass.pub /tmp/.ssh/authorized_keys
+[root@lb ~]# cp -r /tmp/.ssh /var/cache/nginx
+[root@lb ~]# chown -R nginx:nginx /var/cache/nginx/.ssh
+```
+同様の設定をWordPressサーバ1と2でも行ってください。
+
+最後に、lsyncdの設定ファイルを編集し、同期を行います。ロードバランサーは配下のWordPressサーバ1と2の両方と動機する設定を、WordPressノードはロードバランサーノードとのみ同期する設定を行います。まずはロードバランサーノードの設定です。
+
+```
+[root@lb ~]# vi /etc/lsyncd.conf
+
+settings {
+    logfile = "/var/log/lsyncd/lsyncd.log",
+    statusFile = "/var/log/lsyncd/lsyncd-status.log",
+    statusInterval = 20
+}
+
+sync {
+    default.rsync,
+    delay = 0,
+    source="/var/cache/nginx/cache",
+    target="nginx@WordPressサーバ1のIPアドレス:/var/cache/nginx/cache/",
+    rsync = {
+        rsh = "/usr/bin/ssh -i /var/cache/nginx/.ssh/emptypass -o StrictHostKeyChecking=no"
+    },
+    delete = "running",
+    init  = false
+}
+
+sync {
+    default.rsync,
+    delay = 0,
+    source="/var/cache/nginx/cache",
+    target="nginx@WordPressサーバ2のIPアドレス:/var/cache/nginx/cache/",
+    rsync = {
+        rsh = "/usr/bin/ssh -i /var/cache/nginx/.ssh/emptypass -o StrictHostKeyChecking=no"
+    },
+    delete = "running",
+    init  = false,
+}
+```
+
+WordPressノード1、2に設定ファイルを追加し、同期するためのディレクトリを作成してください。
+
+```
+[root@backweb ~]# vi /etc/lsyncd.conf
+
+settings {
+    logfile = "/var/log/lsyncd/lsyncd.log",
+    statusFile = "/var/log/lsyncd/lsyncd-status.log",
+    statusInterval = 20
+}
+
+sync {
+    default.rsync,
+    delay = 0,
+    source="/var/cache/nginx/cache",
+    target="nginx@ロードバランサーのIPアドレス:/var/cache/nginx/cache/",
+    rsync = {
+        rsh = "/usr/bin/ssh -i /var/cache/nginx/.ssh/emptypass -o StrictHostKeyChecking=no"
+    },
+
+    delete = "running",
+    init  = false
+}
+
+[root@backweb ~]# mkdir /var/share/nginx/cache
+[root@backweb ~]# chown –R nginx:nginx /var/cache/nginx/cache
+```
+
+以上でキャッシュファイルを同期するlsyncdの設定が完了しました。各サーバでlsyncdを起動すると、キャッシュファイルが同期されるようになります。
+
+## Zabbixサーバへの登録
+各サーバ上ではProvisioning Scriptで導入されたZabbixエージェントが起動しています。Zabbix監視サーバにこれらの子サーバ群を登録し、一括で監視できるよう設定を施しましょう。上部メニューのConfiguration→Hostsの順にクリックしましょう。
+
+![](images/wordpress/image21.png)
+
+ノード一覧が表示されるので、右端のCreate hostを選択します。
+
+![](images/wordpress/image22.png)
+
+設定画面が表示されるので、内容を登録します。Host Nameに各サーバのホスト名を、Visible NameにはZabbix上で表示される名前を指定します。Groupsでは、右にあるLinux servesをクリックして << ボタンを押すことで選択できます。下のAgent InterfaceのIPアドレスには各ノードのSoftLayerのPrivate IP Addressを登録してください。入力が完了したら、最下段のAddをクリックすることで、ノードのZabbixへの登録が完了します。
+
+![](images/wordpress/image23.png)
+
+監視するノードを追加したら、次は監視する項目を追加します。今度は、Templatesタブをクリックします。テンプレート追加画面を開いたら、画面中央のSelectを選択し監視する内容を選択します。データベースサーバはTemplate Add MySQLに、システム全体の監視をする場合はTemplate OS Linuxにチェックを入れて最下段のSelectを押してください。ポップアップウインドウが閉じた後、下部のAddをクリックし、更に下部のUpdateをクリックしてください。
+
+![](images/wordpress/image24.png)
+
+以上で、選択したTemplateの内容がZabbixに集積され、グラフ化されてモニタリングできます。Monitoring -> Graphs -> Groupで「Linux servers」を選択 -> Graphで確認したい項目を選択することで、収集した情報の推移を確認することができます。
+
+![](images/wordpress/image25.png)
+
+# 最後に
+本ハンズオンで作成した、全ての仮想インスタンスとオブジェクトストレージを削除して終了してください。その他イメージなどを作成された方は、イメージなども削除してください。
+
+（本ハンズオンで利用した環境を、ハンズオン終了後も利用される方は、残しておいても問題ありませんが、課金されることをご理解いただければと思います）
+
+## 仮想インスタンスの削除
+[Device] - [Device list] - 自分のサーバ - [Actions] - [Cancel Device]
+
+![](images/wordpress/image26.png)
+
+## Object Storage内のファイルの削除
+管理ポータルからは、ファイルの一括操作を行うことができないので、Webサーバーから、下記のように自分のコンテナごと削除してください
+
+（例: rm -rf /usr/share/wordpress/wp-content/uploads/student1031-sjc01-container）
+
+
