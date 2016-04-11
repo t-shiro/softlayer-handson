@@ -118,9 +118,58 @@ Continueを押すと、注文閣員画面が表示されるので、再度確認
 これでLocal Load Balancingの注文は完了です。続いてLocal Load Balancingの設定です。
 
 ### Local Load Balancerの設定
-再度管理ポータルのトップからNetwork - Load Balancing - Localの順にクリックし、右隅のAdd Service Groupをクリックし、新しい設定を作成します。
+再度管理ポータルのトップからNetwork - Load Balancing - Localの順にクリックし、左下のAdd Service Groupをクリックし、新しい設定を作成します。
 
 ![](images/network/image14.png)
 
 ![](images/network/image15.png)
 
+
+本ハンズオンではWebサーバのロードバランスを行いますので、GroupのプルダウンメニューからHTTPを選択します。Methodではバランシング手法を選択することができますが、簡単のためにRound Robin(持ち回り)を選択します。Virtual PortにはWebサーバの利用ポートである80を、更に、Allocationには100を入力して下部のSave Configurationsをクリックしてください。
+
+管理ポータルに戻ると、今追加したGroup :HTTPが追加されていますので、左側の三角をクリックしてWebサービスのロードバランスに利用するサーバのIPアドレスを追加します。
+
+![](images/network/image16.png)
+
+Destination IPは注文した二台の仮想インスタンスのグローバルIPアドレスを、Dest.Portは80を、Weightには1を入力し、左端のEnabledチェックボックスにチェックを入れてください。
+
+二台の仮想インスタンスの追加が終了したら、適切に動作しているかを確認しましょう。注文したLocal Load BalancerのVIPアドレスにブラウザからアクセスしてください。
+
+何回かリロードを繰り返すことで、「lb1-local」「lb2-local」が切り替わって表示されることを確認しましょう。
+
+以上でLocal Load Balancingの設定は終了です。Global Load Balancingを行いたい場合は、各データセンター内で同じようにLocal Load Balancingの設定を行った上でGlobal Load Balancingを注文し、各データセンター同士をGlobal Load Balancing上で結びつける必要があります。
+
+# Firewall
+## Firewallの注文
+
+SoftLayerでは、各仮想マシン単位でポータルから管理できるファイアウォールを利用できます。実際に注文して試してみましょう。
+
+> 注意:Firewallは月額課金インスタンスのみに適用できます。
+
+管理ポータルのDevice -> Device Listより、Firewallを導入する仮想マシンをクリックしてください。
+
+![](images/network/image21.png)
+
+サーバ名をクリックして詳細情報を表示したら、最下部のOrder Hardware Firewallをクリックしてください。
+
+![](images/network/image22.png)
+
+すると、詳細確認画面がポップアップします。値段をよく確認の上、Place Orderで注文を確定してください。
+
+![](images/network/image23.png)
+
+## Firewallの設定
+注文を確定したら、再度Firewallを注文した仮想マシンの詳細情報を表示し、メニューの一番右にFirewallが追加されている事を確認してください。
+
+![](images/network/image25.png)
+
+Firewallのタブをクリックしても、初期段階では何のルールも追加されていないので、ルールを追加します。まずはすべての通信を遮断するルールを追加しましょう。IPv4 Rulesの欄の右端の緑色の丸をクリックしてください。
+
+![](images/network/image26.png)
+
+> IPv4とIPv6で個別にルールを設定できますが、今回本ハンズオン内で設定するのはIPv4の方です。
+
+ファイアウォールの設定例として、Webサーバへの通信を遮断します。
+緑色の丸をクリックするとルール編集画面になるので、ActionのプルダウンメニューをPermitからDenyに、SourceとDestinationは空欄のまま、Port Rangeに1と65535を入力します。
+
+![](images/network/image27.png)
