@@ -86,7 +86,9 @@ SoftLayer上では、WindowsやLinux、FreeBSD等様々なサーバOSが動く�
     https://shiro.ma/iptables7.sh **適当に変更してください**
 
 [Host and Domain Names]のセクションでホスト名とドメイン名を入力してください。このホスト名とドメイン名は実在しない仮の値でかまいません。実際にDNSに対しての操作は行われず、サーバを認識するためだけに用いられます。空欄だとオーダーが確定できません。
-![](images/server/image14.png)  
+
+![](images/server/image14.png)
+
 > 注意 : 講師から貸与アカウントでハンズオンに参加されている方は下記のネーミングでサーバを作成してください。  
 Hostname: “貸与されたアカウント名”  
 Domain: ibm.com
@@ -100,7 +102,7 @@ Domain: ibm.com
 オーダー内容を確認後、ウィンドウを閉じてください。
 ![](images/server/image17.png)  
 
-### 仮装サーバの確認
+### 仮想サーバの確認
 メインウインドウにもどり、管理ポータルから[Devices]→[Device List]をクリックしてください。クラウドインスタンスが完全に起動すると、該当サーバのStart Date項目に、サーバ利用開始日付が表示されます。デバイス名の左側に時計のアイコンが表示されている場合はインスタンスの準備作業中です。
 
 ![](images/server/image18.png)  
@@ -678,7 +680,7 @@ Note: “貸与されたアカウント名”-image 例: sluser01-image
 ![](images/server/image50.png)
 
 ### イメージテンプレートを用いたデプロイ
-取得したイメージテンプレートを基に，仮装インスタンスをデプロイします．管理ポータルから[Device]→[Manage]→[Images]を開き，右端の[Actions] – [Order Hourly Virtual Server]を選択してください．
+取得したイメージテンプレートを基に，仮想インスタンスをデプロイします．管理ポータルから[Device]→[Manage]→[Images]を開き，右端の[Actions] – [Order Hourly Virtual Server]を選択してください．
 
 注文ウィザードが表示されます．一番上の[Location] - [DATA CENTER] と，注文確定画面のHost and Domain Names設定し，注文に進んで下さい．
 
