@@ -332,9 +332,11 @@ Tera Termを起動し，サーバのPublic IPアドレスを入力してOKを押
 ![](images/server/ttssh-pubkey1.png)  
 
 認証画面では，ユーザー名にはroot，パスワードには公開鍵作成時に入力したパスワードを入力します．更に，「秘密鍵」ボタンを押し，ダウンロードした秘密鍵を選択します．
+
 ![](images/server/ttssh-pubkey3.png)  
 
 右下のプルダウンメニューを「すべてのファイル」に変更し，ダウンロードした秘密鍵ファイルを選択します．
+
 ![](images/server/ttssh-pubkey4.png)  
 
 OKを押してターミナル画面が表示されたら，鍵交換方式でのログイン成功です．
