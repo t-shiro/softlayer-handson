@@ -366,12 +366,9 @@ SoftLayer の CDN 上では、一度アクセスがある毎に、サーバか�
 
 実際に CDN 上のキャッシュサーバにデータを浸透させてみましょう。
 実際に行う作業は、管理ポータルの Object Storage のページの上で、CDN が有効化されたコンテナのファイルをクリックし、[Prime Cache]ボタンをクリックするだけです。
-
-![](images/storage/image19.png)
-
 逆に、既にキャッシュサーバに浸透したキャッシュを削除する場合は[Purge Cache]をクリックします。
 
-![](images/storage/image21.png)
+![](images/storage/image19.png)
 
 更に、コンテナに対して Static Site Access を有効化することで、簡易 Web サーバとして利用する事が可能です。
 こちらも、有効化するコンテナをクリックし、[Enable Static Site]にチェックを入れるだけで有効になります。
