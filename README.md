@@ -18,5 +18,11 @@
 - CloudFuseが使えるように内容を更新
 - リンク切れしていたファイルを一時的にshiro.ma上でホスト
 
+## Wordpress編
+- Provisioning Scriptを更新して動作するように変更
+
+## Windows編
+- 新規追加
+
 # 未着手点
 画像の更新
